@@ -178,6 +178,17 @@ Como mínimo, se definirán las siguientes clases:
 
 # Interfaz y casos de uso
 
+## Reglas de diseño y estilo de interfaz
+    * Estilo neo-brutalista
+    * Extremadamente creativa, tanto como sea posible
+    * Animaciones suaves
+    * Páginas y botones coloridos
+    * Tailwind CSS styles
+    * Interfaz responsive
+    * Titulo de la app: Clonación
+    * Subtítulo de la app: Multiplica tu mente
+
+
 ## Menú de inicio de sesión/registro
     * Usuario
     * Password

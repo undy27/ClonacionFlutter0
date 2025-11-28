@@ -1,0 +1,15 @@
+<svg width="200" height="300" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="300" rx="15" fill="#F8FAFC" stroke="black" stroke-width="4"/>
+  
+  <!-- Top Section (Multiplications) -->
+  <circle cx="50" cy="60" r="35" fill="#1E3A8A" stroke="black" stroke-width="2"/>
+  <circle cx="150" cy="60" r="35" fill="#1E3A8A" stroke="black" stroke-width="2"/>
+  <circle cx="100" cy="110" r="35" fill="#1E3A8A" stroke="black" stroke-width="2"/>
+  
+  <!-- Middle Section (Division) -->
+  <circle cx="100" cy="190" r="40" fill="#10B981" stroke="black" stroke-width="2"/>
+  
+  <!-- Bottom Section (Results) -->
+  <path d="M10 240H190V285C190 293.284 183.284 300 175 300H25C16.7157 300 10 293.284 10 285V240Z" fill="#38BDF8" stroke="black" stroke-width="2"/>
+</svg>
