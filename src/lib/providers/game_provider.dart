@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import '../models/partida.dart';
 import '../services/game_logic.dart';
 import '../models/carta.dart';
+import '../models/usuario.dart';
+import '../services/postgres_service.dart';
 
 class GameProvider with ChangeNotifier {
   final List<Partida> _partidas = [];
   Partida? _currentPartida;
+  Usuario? _currentUser;
   
   List<Carta> _baraja = [];
   // For simplicity, just managing local player state for now
@@ -20,46 +23,171 @@ class GameProvider with ChangeNotifier {
   List<Carta> get mazoRestante => _mazoRestante;
   List<List<Carta>> get montonesDescarte => _montonesDescarte;
   List<Carta> get cartasDescartadas => _cartasDescartadas;
+  Usuario? get currentUser => _currentUser;
 
-  void createPartida(String nombre, int jugadores, int minRating, int maxRating) {
-    final newPartida = Partida(
-      id: DateTime.now().toString(),
-      nombre: nombre,
-      creadorId: 'user_1', // Mock
-      numJugadoresObjetivo: jugadores,
-      ratingMin: minRating,
-      ratingMax: maxRating,
-      jugadoresIds: ['user_1'],
-    );
-    _partidas.add(newPartida);
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  Future<void> loadPartidasDisponibles() async {
+    try {
+      final partidas = await PostgresService().getPartidasDisponibles();
+      _partidas.clear();
+      _partidas.addAll(partidas);
+      notifyListeners();
+    } catch (e) {
+      print("Error loading games: $e");
+    }
+  }
+
+  void updateUser(Usuario? user) {
+    _currentUser = user;
+    // notifyListeners(); // Avoid loops if called from build
+  }
+
+  Future<bool> createPartida(String nombre, int jugadores, int minRating, int maxRating) async {
+    if (_currentUser == null) {
+      print("Error: No user logged in");
+      return false;
+    }
+
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      final currentUserId = _currentUser!.id;
+      
+      // 1. Check if user already has an active game
+      final activeGame = await PostgresService().getPartidaActivaByUsuario(currentUserId);
+      if (activeGame != null) {
+         print("Leaving previous game: ${activeGame.id} (${activeGame.estado}) to create new one.");
+         await PostgresService().leavePartida(activeGame.id, currentUserId);
+      }
+
+      final uuid = DateTime.now().millisecondsSinceEpoch.toString();
+
+      final newPartida = await PostgresService().createPartida(
+        id: uuid,
+        nombre: nombre,
+        creadorId: currentUserId,
+        numJugadoresObjetivo: jugadores,
+        ratingMin: minRating,
+        ratingMax: maxRating,
+      );
+
+      if (newPartida != null) {
+        _currentPartida = newPartida;
+        _partidas.insert(0, newPartida);
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Error creating game: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
   
-  void joinPartida(String partidaId) {
-     // Mock join
+  Future<bool> joinPartida(String partidaId) async {
+    print("GameProvider.joinPartida called for $partidaId by ${_currentUser?.id}");
+    if (_currentUser == null) return false;
+    
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final success = await PostgresService().joinPartida(partidaId, _currentUser!.id);
+      if (success) {
+        final partida = await PostgresService().getPartidaById(partidaId);
+        if (partida != null) {
+          _currentPartida = partida;
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      print("Error joining game: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void startGame() {
-     _baraja = GameLogic.generarBaraja();
-     _cartasDescartadas = [];
-     
-     // Mock dealing
-     // 48 cards to players (assume 2 players for now -> 24 each? No, 48 total distributed)
-     // Specs: "reparten aleatoriamente 48 cartas entre todos los jugadores"
-     // "4 cartas restantes... 4 montones"
-     
-     _montonesDescarte = [
-         [_baraja[48]],
-         [_baraja[49]],
-         [_baraja[50]],
-         [_baraja[51]],
-     ];
-     
-     // Deal 5 to hand, 19 to remaining (for 2 players)
-     _mano = _baraja.sublist(0, 5);
-     _mazoRestante = _baraja.sublist(5, 24); // 19 cards
-     
-     notifyListeners();
+  Future<bool> startPartida() async {
+    if (_currentPartida == null) return false;
+    
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Try to start in DB
+      final success = await PostgresService().startPartida(_currentPartida!.id);
+      if (success) {
+        _initializeLocalGame();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Error starting game: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void _initializeLocalGame() {
+        // Initialize game logic locally
+        _baraja = GameLogic.generarBaraja();
+        _cartasDescartadas = [];
+        
+        // Deal cards (Mock logic for now, should be synchronized)
+        _montonesDescarte = [
+           [_baraja[48]],
+           [_baraja[49]],
+           [_baraja[50]],
+           [_baraja[51]],
+        ];
+        
+        _mano = _baraja.sublist(0, 5);
+        _mazoRestante = _baraja.sublist(5, 24); 
+        
+        notifyListeners();
+  }
+
+  Future<void> checkGameStatus() async {
+    if (_currentPartida == null || _currentUser == null) return;
+
+    try {
+      final updatedPartida = await PostgresService().getPartidaById(_currentPartida!.id);
+      if (updatedPartida != null) {
+        bool wasWaiting = _currentPartida!.estado == 'esperando';
+        _currentPartida = updatedPartida;
+        notifyListeners();
+
+        // Auto-start if full and we are the creator
+        if (updatedPartida.estado == 'esperando' && 
+            updatedPartida.jugadores.length >= updatedPartida.numJugadoresObjetivo) {
+             
+             print("Game full! Creator: ${updatedPartida.creadorId}, Me: ${_currentUser!.id}");
+
+             // Any player can trigger the start now, DB handles concurrency
+             print("Game is full, attempting to start game...");
+             await startPartida();
+        } 
+        // If game became 'en_curso' (started by someone else or us), init local
+        else if (wasWaiting && updatedPartida.estado == 'en_curso') {
+             print("Game started! Initializing local game...");
+             _initializeLocalGame();
+        }
+      }
+    } catch (e) {
+      print("Error checking game status: $e");
+    }
   }
 
   bool intentarDescarte(Carta cartaMano, int montonIndex) {

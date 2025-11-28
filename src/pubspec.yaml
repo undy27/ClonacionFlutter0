@@ -17,6 +17,8 @@ dependencies:
   intl: ^0.19.0
   animate_do: ^3.3.2
   shared_preferences: ^2.2.2
+  postgres: ^2.6.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +29,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+  fonts:
+    - family: SpaceMono
+      fonts:
+        - asset: fonts/SpaceMono-Regular.ttf
+        - asset: fonts/SpaceMono-Bold.ttf
+          weight: 700
+    - family: LexendMega
+      fonts:
+        - asset: fonts/LexendMega-Bold.ttf
+          weight: 700

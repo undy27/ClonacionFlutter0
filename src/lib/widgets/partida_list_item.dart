@@ -14,39 +14,54 @@ class PartidaListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border, width: 2),
+          border: Border.all(
+            color: isDark ? AppTheme.darkBorder : AppTheme.border, 
+            width: 2
+          ),
           boxShadow: AppTheme.smallHardShadow,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  partida.nombre,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                Text(
-                  "Creado por: ${partida.creadorId}", // In a real app, resolve to alias
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    partida.nombre,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    "Creado por: ${partida.jugadores.firstWhere((j) => j.id == partida.creadorId, orElse: () => partida.jugadores.first).alias}",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "${partida.jugadoresIds.length}/${partida.numJugadoresObjetivo}",
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 18),
+                  "${partida.jugadores.length}/${partida.numJugadoresObjetivo}",
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontSize: 18,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                 ),
                 Text(
                   "Avg Rating: 1500", // Placeholder

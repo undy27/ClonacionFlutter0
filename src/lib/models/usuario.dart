@@ -6,7 +6,12 @@ class Usuario {
   final int partidasJugadas;
   final int victorias;
   final int derrotas;
+  final int? mejorTiempoVictoria;
+  final int? mejorTiempoVictoria2j;
+  final int? mejorTiempoVictoria3j;
+  final int? mejorTiempoVictoria4j;
   final String temaCartas;
+  final bool isGuest;
 
   Usuario({
     required this.id,
@@ -16,7 +21,12 @@ class Usuario {
     this.partidasJugadas = 0,
     this.victorias = 0,
     this.derrotas = 0,
+    this.mejorTiempoVictoria,
+    this.mejorTiempoVictoria2j,
+    this.mejorTiempoVictoria3j,
+    this.mejorTiempoVictoria4j,
     this.temaCartas = 'clasico',
+    this.isGuest = false,
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
@@ -28,7 +38,12 @@ class Usuario {
       partidasJugadas: json['partidas_jugadas'] ?? 0,
       victorias: json['victorias'] ?? 0,
       derrotas: json['derrotas'] ?? 0,
+      mejorTiempoVictoria: json['mejor_tiempo_victoria'],
+      mejorTiempoVictoria2j: json['mejor_tiempo_victoria_2j'],
+      mejorTiempoVictoria3j: json['mejor_tiempo_victoria_3j'],
+      mejorTiempoVictoria4j: json['mejor_tiempo_victoria_4j'],
       temaCartas: json['tema_cartas'] ?? 'clasico',
+      isGuest: json['is_guest'] ?? false,
     );
   }
 
@@ -41,7 +56,12 @@ class Usuario {
       'partidas_jugadas': partidasJugadas,
       'victorias': victorias,
       'derrotas': derrotas,
+      'mejor_tiempo_victoria': mejorTiempoVictoria,
+      'mejor_tiempo_victoria_2j': mejorTiempoVictoria2j,
+      'mejor_tiempo_victoria_3j': mejorTiempoVictoria3j,
+      'mejor_tiempo_victoria_4j': mejorTiempoVictoria4j,
       'tema_cartas': temaCartas,
+      'is_guest': isGuest,
     };
   }
 }

@@ -1,11 +1,39 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
 import '../widgets/partida_list_item.dart';
+import '../widgets/create_game_dialog.dart';
 import '../theme/app_theme.dart';
 
-class GameListScreen extends StatelessWidget {
+class GameListScreen extends StatefulWidget {
   const GameListScreen({super.key});
+
+  @override
+  State<GameListScreen> createState() => _GameListScreenState();
+}
+
+class _GameListScreenState extends State<GameListScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshList();
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refreshList());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _refreshList() {
+    if (mounted) {
+      Provider.of<GameProvider>(context, listen: false).loadPartidasDisponibles();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +43,29 @@ class GameListScreen extends StatelessWidget {
       ),
       body: Consumer<GameProvider>(
         builder: (context, gameProvider, child) {
+          if (gameProvider.isLoading && gameProvider.partidas.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (gameProvider.partidas.isEmpty) {
+             return Center(
+               child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Icon(Icons.games_outlined, size: 64, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
+                   const SizedBox(height: 16),
+                   Text(
+                     "No hay partidas disponibles.\n¡Crea una nueva!",
+                     textAlign: TextAlign.center,
+                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                       color: Theme.of(context).textTheme.bodyMedium?.color
+                     ),
+                   ),
+                 ],
+               ),
+             );
+          }
+
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: gameProvider.partidas.length,
@@ -22,9 +73,19 @@ class GameListScreen extends StatelessWidget {
               final partida = gameProvider.partidas[index];
               return PartidaListItem(
                 partida: partida,
-                onTap: () {
-                   gameProvider.joinPartida(partida.id);
-                   Navigator.pushNamed(context, '/game');
+                onTap: () async {
+                   print("Tapped on game: ${partida.id}");
+                   final success = await gameProvider.joinPartida(partida.id);
+                   if (success && mounted) {
+                      Navigator.pushNamed(context, '/waiting_room');
+                   } else if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Error al unirse a la partida"),
+                          backgroundColor: AppTheme.error,
+                        ),
+                      );
+                   }
                 },
               );
             },
@@ -33,9 +94,26 @@ class GameListScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Show dialog to create game
-          Provider.of<GameProvider>(context, listen: false).createPartida("Nueva Partida", 2, 0, 3000);
-          Navigator.pushNamed(context, '/game');
+          showDialog(
+            context: context,
+            builder: (context) => CreateGameDialog(
+              onCreate: (nombre, jugadores, minRating, maxRating) async {
+                final success = await Provider.of<GameProvider>(context, listen: false)
+                    .createPartida(nombre, jugadores, minRating, maxRating);
+                
+                if (success && context.mounted) {
+                  Navigator.pushNamed(context, '/waiting_room');
+                } else if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Error al crear la partida"),
+                      backgroundColor: AppTheme.error,
+                    ),
+                  );
+                }
+              },
+            ),
+          );
         },
         backgroundColor: AppTheme.primary,
         shape: RoundedRectangleBorder(

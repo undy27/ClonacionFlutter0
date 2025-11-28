@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/carta.dart';
 import '../theme/app_theme.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CartaWidget extends StatelessWidget {
   final Carta carta;
@@ -38,7 +39,8 @@ class CartaWidget extends StatelessWidget {
           child: Center(
             child: Text(
               "?",
-              style: GoogleFonts.lexendMega(
+              style: TextStyle(
+                fontFamily: 'LexendMega',
                 fontSize: width * 0.4,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -60,7 +62,10 @@ class CartaWidget extends StatelessWidget {
           border: Border.all(color: AppTheme.border, width: 2),
           boxShadow: AppTheme.smallHardShadow,
         ),
-        child: tema == 'clasico' ? _buildClasico() : _buildModerno(),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: tema == 'clasico' ? _buildClasico() : _buildModerno(),
+        ),
       ),
     );
   }
@@ -146,86 +151,149 @@ class CartaWidget extends StatelessWidget {
   }
 
   Widget _buildModerno() {
-    // This is a simplified programmatic version of the SVG for the 'moderno' theme
-    // Ideally, we would use flutter_svg to render the actual SVG asset with data overlaid
-    return Stack(
-      children: [
-        // Background circles for multiplications (Blue)
-        Positioned(
-          left: width * 0.1,
-          top: height * 0.1,
-          child: _buildCircle(width * 0.35, const Color(0xFF1E3A8A), "${carta.multiplicaciones[0][0]}×${carta.multiplicaciones[0][1]}"),
-        ),
-        Positioned(
-          right: width * 0.1,
-          top: height * 0.1,
-          child: _buildCircle(width * 0.35, const Color(0xFF1E3A8A), "${carta.multiplicaciones[1][0]}×${carta.multiplicaciones[1][1]}"),
-        ),
-         Positioned(
-          left: width * 0.325,
-          top: height * 0.3,
-          child: _buildCircle(width * 0.35, const Color(0xFF1E3A8A), "${carta.multiplicaciones[2][0]}×${carta.multiplicaciones[2][1]}"),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        
+        // Helper to map SVG coordinates (161x216) to current size
+        double scaleX(double x) => (x / 161.0) * w;
+        double scaleY(double y) => (y / 216.0) * h;
 
-        // Middle circle for division (Green)
-        Positioned(
-          left: width * 0.3,
-          top: height * 0.55,
-          child: _buildCircle(width * 0.4, const Color(0xFF10B981), "${carta.division[0]}:${carta.division[1]}"),
-        ),
+        // Cálculo de fuente uniforme
+        // Objetivo: "10x10" cabe en un círculo de diámetro D con margen M
+        // D = w * 0.32 (aprox 32% del ancho, tamaño visual de los círculos/zonas)
+        // M = 8 (4px a cada lado)
+        // Factor empírico para LexendMega: ~3.2 para 5 caracteres ("10x10")
+        double diameter = w * 0.32;
+        double margin = 8.0;
+        double uniformFontSize = (diameter - margin) / 3.2;
+        
+        // Asegurar un mínimo legible
+        if (uniformFontSize < 8) uniformFontSize = 8;
 
-        // Bottom section for results (Light Blue)
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: height * 0.2,
-          child: Container(
-             decoration: const BoxDecoration(
-               color: Color(0xFF38BDF8),
-               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8)),
-               border: Border(top: BorderSide(color: Colors.black, width: 2)),
-             ),
-             child: Row(
-               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-               children: carta.resultados.map((res) => Text(
-                 res.toString(),
-                 style: _getTextStyle().copyWith(color: Colors.black, fontWeight: FontWeight.bold),
-               )).toList(),
-             ),
-          ),
-        ),
-      ],
+        return Stack(
+          children: [
+            // Background SVG
+            SizedBox.expand(
+              child: SvgPicture.asset(
+                'assets/Carta2.svg',
+                fit: BoxFit.fill,
+              ),
+            ),
+            
+            // Multiplications (Dark Blue Area)
+            // Centros aproximados visuales en SVG original (161x216)
+            
+            // Mult 1: Top Left (x~40, y~45)
+            Positioned(
+              left: scaleX(40) - (diameter / 2), 
+              top: scaleY(45) - (diameter / 2),
+              width: diameter,
+              height: diameter,
+              child: Center(
+                child: _buildOperationText(
+                  "${carta.multiplicaciones[0][0]}×${carta.multiplicaciones[0][1]}",
+                  uniformFontSize,
+                  Colors.white
+                ),
+              ),
+            ),
+            
+            // Mult 2: Top Right (x~120, y~45)
+            Positioned(
+              left: scaleX(120) - (diameter / 2),
+              top: scaleY(45) - (diameter / 2),
+              width: diameter,
+              height: diameter,
+              child: Center(
+                child: _buildOperationText(
+                  "${carta.multiplicaciones[1][0]}×${carta.multiplicaciones[1][1]}",
+                  uniformFontSize,
+                  Colors.white
+                ),
+              ),
+            ),
+            
+            // Mult 3: Middle Left (x~40, y~118)
+            Positioned(
+              left: scaleX(40) - (diameter / 2),
+              top: scaleY(118) - (diameter / 2),
+              width: diameter,
+              height: diameter,
+              child: Center(
+                child: _buildOperationText(
+                  "${carta.multiplicaciones[2][0]}×${carta.multiplicaciones[2][1]}",
+                  uniformFontSize,
+                  Colors.white
+                ),
+              ),
+            ),
+
+            // Division (Green Circle)
+            // Center is (118, 118)
+            Positioned(
+              left: scaleX(118) - (diameter / 2), 
+              top: scaleY(118) - (diameter / 2),
+              width: diameter, 
+              height: diameter,
+              child: Center(
+                child: _buildOperationText(
+                  "${carta.division[0]}:${carta.division[1]}",
+                  uniformFontSize,
+                  Colors.white
+                ),
+              ),
+            ),
+
+            // Results (Light Blue Bottom Area)
+            // Starts around y=162. Centered vertically in the bottom area.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: scaleY(10), // Ajuste fino
+              height: scaleY(40), // Altura de la zona inferior
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: carta.resultados.map((res) => _buildOperationText(
+                  res.toString(),
+                  uniformFontSize,
+                  Colors.white
+                )).toList(),
+              ),
+            ),
+          ],
+        );
+      }
     );
   }
   
-  Widget _buildCircle(double size, Color color, String text) {
-      return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black, width: 1.5),
-          ),
-          alignment: Alignment.center,
-          child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: Text(
-                    text,
-                    style: _getTextStyle().copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-          ),
+  Widget _buildOperationText(String text, double fontSize, Color color) {
+      return Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'LexendMega',
+          fontSize: fontSize,
+          color: color,
+          fontWeight: FontWeight.bold,
+          height: 1.0, // Tight height for better centering
+          shadows: [
+            Shadow(
+              offset: const Offset(1, 1),
+              blurRadius: 2,
+              color: Colors.black.withOpacity(0.5),
+            ),
+          ],
+        ),
       );
   }
 
   TextStyle _getTextStyle() {
-      // Dynamic font size calculation could be more sophisticated
       double fontSize = width * 0.12; 
-      return GoogleFonts.lexendMega(
+      return TextStyle(
+        fontFamily: 'LexendMega',
         fontSize: fontSize,
         color: Colors.black,
         fontWeight: FontWeight.normal,

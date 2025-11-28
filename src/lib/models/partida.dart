@@ -1,3 +1,22 @@
+class JugadorInfo {
+  final String id;
+  final String alias;
+  
+  JugadorInfo({required this.id, required this.alias});
+  
+  factory JugadorInfo.fromJson(Map<String, dynamic> json) {
+    return JugadorInfo(
+      id: json['id'],
+      alias: json['alias'],
+    );
+  }
+  
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'alias': alias,
+  };
+}
+
 class Partida {
   final String id;
   final String nombre;
@@ -8,7 +27,7 @@ class Partida {
   final String estado; // 'esperando', 'jugando', 'finalizada'
   final String? ganadorId;
   final DateTime? inicioPartida;
-  final List<String> jugadoresIds; // Helper to track joined players
+  final List<JugadorInfo> jugadores;
 
   Partida({
     required this.id,
@@ -20,6 +39,50 @@ class Partida {
     this.estado = 'esperando',
     this.ganadorId,
     this.inicioPartida,
-    this.jugadoresIds = const [],
+    this.jugadores = const [],
   });
+
+  factory Partida.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.parse(value);
+      return null;
+    }
+
+    var jugadoresList = <JugadorInfo>[];
+    if (json['jugadores'] != null) {
+      jugadoresList = (json['jugadores'] as List)
+          .map((i) => JugadorInfo.fromJson(i))
+          .toList();
+    }
+
+    return Partida(
+      id: json['id'],
+      nombre: json['nombre'],
+      creadorId: json['creador_id'],
+      numJugadoresObjetivo: json['num_jugadores_objetivo'],
+      ratingMin: json['rating_min'],
+      ratingMax: json['rating_max'],
+      estado: json['estado'] ?? 'esperando',
+      ganadorId: json['ganador_id'],
+      inicioPartida: parseDate(json['inicio_partida']),
+      jugadores: jugadoresList,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nombre': nombre,
+      'creador_id': creadorId,
+      'num_jugadores_objetivo': numJugadoresObjetivo,
+      'rating_min': ratingMin,
+      'rating_max': ratingMax,
+      'estado': estado,
+      'ganador_id': ganadorId,
+      'inicio_partida': inicioPartida?.toIso8601String(),
+      'jugadores': jugadores.map((j) => j.toJson()).toList(),
+    };
+  }
 }

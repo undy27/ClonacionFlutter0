@@ -5,6 +5,8 @@ import '../widgets/carta_widget.dart';
 import '../theme/app_theme.dart';
 import 'package:animate_do/animate_do.dart';
 
+import 'dart:math';
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
@@ -16,9 +18,10 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<GameProvider>(context, listen: false).startGame();
-    });
+    // Game is started from WaitingRoomScreen, so data should be ready.
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Provider.of<GameProvider>(context, listen: false).startPartida();
+    // });
   }
 
   @override

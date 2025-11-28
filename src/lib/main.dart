@@ -5,12 +5,26 @@ import 'providers/game_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/game_list_screen.dart';
 import 'screens/game_screen.dart';
+import 'screens/ranking_screen.dart';
+import 'screens/options_screen.dart';
+import 'screens/card_theme_screen.dart';
+import 'screens/waiting_room_screen.dart';
+
+import 'providers/auth_provider.dart';
+import 'screens/auth_screen.dart';
+
+import 'providers/theme_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => GameProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, GameProvider>(
+          create: (_) => GameProvider(),
+          update: (_, auth, game) => game!..updateUser(auth.currentUser),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -22,15 +36,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return MaterialApp(
       title: 'Clonación',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomeScreen(),
+        '/': (context) => const AuthScreen(),
+        '/home': (context) => const HomeScreen(),
         '/game_list': (context) => const GameListScreen(),
         '/game': (context) => const GameScreen(),
+        '/ranking': (context) => const RankingScreen(),
+        '/options': (context) => const OptionsScreen(),
+        '/card_theme': (context) => const CardThemeScreen(),
+        '/waiting_room': (context) => const WaitingRoomScreen(),
       },
     );
   }

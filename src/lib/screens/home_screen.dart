@@ -8,7 +8,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -49,7 +49,9 @@ class HomeScreen extends StatelessWidget {
                 child: CustomButton(
                   text: "RANKING GLOBAL",
                   color: AppTheme.secondary,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/ranking');
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -59,7 +61,9 @@ class HomeScreen extends StatelessWidget {
                 child: CustomButton(
                   text: "OPCIONES",
                   color: AppTheme.accent,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/options');
+                  },
                 ),
               ),
             ],
