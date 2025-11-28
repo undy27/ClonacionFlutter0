@@ -50,6 +50,9 @@ class PostgresService {
       try {
         await conn.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_guest BOOLEAN DEFAULT FALSE');
       } catch (_) {}
+      try {
+        await conn.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS is_dark_mode BOOLEAN DEFAULT FALSE');
+      } catch (_) {}
     } catch (e) {
       print('Error initializing auth tables: $e');
     }
@@ -208,6 +211,22 @@ class PostgresService {
       return true;
     } catch (e) {
       print('Error al actualizar tema de cartas: $e');
+      return false;
+    }
+  }
+
+  /// Actualiza la preferencia de modo oscuro del usuario
+  Future<bool> updateThemePreference(String usuarioId, bool isDark) async {
+    try {
+      final conn = await _getConnection();
+      await conn.query(
+        'UPDATE usuarios SET is_dark_mode = @isDark WHERE id = @uid',
+        substitutionValues: {'isDark': isDark, 'uid': usuarioId},
+        allowReuse: false,
+      );
+      return true;
+    } catch (e) {
+      print('Error updating theme preference: $e');
       return false;
     }
   }

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../providers/theme_provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/postgres_service.dart';
 
 class OptionsScreen extends StatelessWidget {
   const OptionsScreen({super.key});
@@ -55,6 +57,10 @@ class OptionsScreen extends StatelessWidget {
                       activeColor: AppTheme.primary,
                       onChanged: (value) {
                         themeProvider.toggleTheme(value);
+                        final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+                        if (user != null && !user.isGuest) {
+                           PostgresService().updateThemePreference(user.id, value);
+                        }
                       },
                     ),
                   );

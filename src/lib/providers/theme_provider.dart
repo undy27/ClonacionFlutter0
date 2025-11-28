@@ -23,8 +23,10 @@ class ThemeProvider with ChangeNotifier {
     final isDark = prefs.getBool('isDarkMode');
     if (isDark != null) {
       _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-      notifyListeners();
+    } else {
+      _themeMode = ThemeMode.light; // Default explicit light
     }
+    notifyListeners();
   }
 
   void toggleTheme(bool isDark) async {
@@ -32,5 +34,15 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkMode', isDark);
+  }
+
+  void syncFromUser(bool isDark) {
+    if (isDarkMode != isDark) {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+      notifyListeners();
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setBool('isDarkMode', isDark);
+      });
+    }
   }
 }

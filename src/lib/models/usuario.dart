@@ -12,6 +12,7 @@ class Usuario {
   final int? mejorTiempoVictoria4j;
   final String temaCartas;
   final bool isGuest;
+  final bool isDarkMode;
 
   Usuario({
     required this.id,
@@ -27,6 +28,7 @@ class Usuario {
     this.mejorTiempoVictoria4j,
     this.temaCartas = 'clasico',
     this.isGuest = false,
+    this.isDarkMode = false,
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class Usuario {
       mejorTiempoVictoria4j: json['mejor_tiempo_victoria_4j'],
       temaCartas: json['tema_cartas'] ?? 'clasico',
       isGuest: json['is_guest'] ?? false,
+      isDarkMode: json['is_dark_mode'] ?? false,
     );
   }
 
@@ -62,6 +65,7 @@ class Usuario {
       'mejor_tiempo_victoria_4j': mejorTiempoVictoria4j,
       'tema_cartas': temaCartas,
       'is_guest': isGuest,
+      'is_dark_mode': isDarkMode,
     };
   }
 }

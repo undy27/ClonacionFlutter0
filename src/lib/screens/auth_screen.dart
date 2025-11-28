@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/custom_button.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -184,6 +185,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           }
 
                           if (success && mounted) {
+                             final user = authProvider.currentUser;
+                             if (user != null) {
+                                Provider.of<ThemeProvider>(context, listen: false).syncFromUser(user.isDarkMode);
+                             }
                              Navigator.pushReplacementNamed(context, '/home');
                           } else if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
