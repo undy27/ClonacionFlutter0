@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import 'package:animate_do/animate_do.dart';
 import '../models/partida.dart';
 import '../models/carta.dart';
+import 'dart:math';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -185,7 +186,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildDiscardPile(int index, GameProvider provider, double w, double h) {
-    if (provider.montonesDescarte.length <= index || provider.montonesDescarte[index].isEmpty) {
+    final pile = provider.montonesDescarte[index];
+    
+    if (pile.isEmpty) {
       // Empty pile - show placeholder
       return Container(
         width: w,
@@ -209,31 +212,92 @@ class _GameScreenState extends State<GameScreen> {
       );
     }
     
-    return DragTarget(
-      onWillAcceptWithDetails: (data) => true,
-      onAcceptWithDetails: (data) {
-        final carta = data.data as Carta;
-        bool success = provider.intentarDescarte(carta, index);
-        if (!success) {
-          // TODO: Trigger shake animation and penalty countdown
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("¡Descarte inválido!"),
-              backgroundColor: AppTheme.error,
-              duration: Duration(milliseconds: 600),
-            ),
-          );
-        }
-      },
-      builder: (context, candidateData, rejectedData) {
-        final topCard = provider.montonesDescarte[index].last;
-        return CartaWidget(
-          carta: topCard,
-          width: w,
-          height: h,
-          matchDetails: provider.getLastMatchDetails(index),
+    // Calculate how many cards to show below based on pile size
+    const totalCards = 52; 
+    final count = pile.length;
+    final percentage = count / totalCards;
+    
+    int cardsBelow = 0;
+    if (count > 1) {
+        if (percentage <= 0.08) cardsBelow = 1;       // 0.1% - 8%
+        else if (percentage <= 0.16) cardsBelow = 2;  // 8% - 16%
+        else cardsBelow = 3;                          // > 16%
+    }
+    
+    // Ensure we don't try to show more cards than exist
+    if (cardsBelow > count - 1) cardsBelow = count - 1;
+    
+    List<Widget> stackChildren = [];
+    
+    // 1. Add cards below (rendered first so they are at the bottom)
+    for (int i = cardsBelow; i >= 1; i--) {
+        final cardIndex = count - 1 - i;
+        final card = pile[cardIndex];
+        
+        final random = Random(card.hashCode);
+        final angleDegrees = -3 + random.nextDouble() * 6;
+        final angleRadians = angleDegrees * (pi / 180);
+        
+        // Small random offset for "messy pile" effect
+        final offsetX = -2 + random.nextDouble() * 4;
+        final offsetY = -2 + random.nextDouble() * 4;
+
+        stackChildren.add(
+            Positioned(
+                left: offsetX,
+                top: offsetY,
+                child: Transform.rotate(
+                    angle: angleRadians,
+                    child: CartaWidget(
+                        carta: card,
+                        width: w,
+                        height: h,
+                    ),
+                ),
+            )
         );
-      },
+    }
+    
+    // 2. Add top card (DragTarget)
+    stackChildren.add(
+        DragTarget(
+          onWillAcceptWithDetails: (data) => true,
+          onAcceptWithDetails: (data) {
+            final carta = data.data as Carta;
+            bool success = provider.intentarDescarte(carta, index);
+            if (!success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("¡Descarte inválido!"),
+                  backgroundColor: AppTheme.error,
+                  duration: Duration(milliseconds: 600),
+                ),
+              );
+            }
+          },
+          builder: (context, candidateData, rejectedData) {
+            final topCard = pile.last;
+            
+            final random = Random(topCard.hashCode);
+            final angleDegrees = -3 + random.nextDouble() * 6;
+            final angleRadians = angleDegrees * (pi / 180);
+
+            return Transform.rotate(
+              angle: angleRadians,
+              child: CartaWidget(
+                carta: topCard,
+                width: w,
+                height: h,
+                matchDetails: provider.getLastMatchDetails(index),
+              ),
+            );
+          },
+        )
+    );
+
+    return Stack(
+        clipBehavior: Clip.none,
+        children: stackChildren,
     );
   }
 
@@ -388,6 +452,11 @@ class _GameScreenState extends State<GameScreen> {
     
     final carta = provider.mano[index];
     
+    // Deterministic random rotation based on card hash so it doesn't jitter on rebuilds
+    final random = Random(carta.hashCode);
+    final angleDegrees = -3 + random.nextDouble() * 6; // -3 to 3 degrees
+    final angleRadians = angleDegrees * (pi / 180);
+    
     return Draggable(
       data: carta,
       feedback: Material(
@@ -415,10 +484,13 @@ class _GameScreenState extends State<GameScreen> {
       ),
       child: FadeInUp(
         duration: Duration(milliseconds: 300 + (index * 100)),
-        child: CartaWidget(
-          carta: carta,
-          width: w,
-          height: h,
+        child: Transform.rotate(
+          angle: angleRadians,
+          child: CartaWidget(
+            carta: carta,
+            width: w,
+            height: h,
+          ),
         ),
       ),
     );
@@ -428,93 +500,131 @@ class _GameScreenState extends State<GameScreen> {
     if (provider.mazoRestante.isEmpty) {
       return SizedBox(width: w, height: h);
     }
-    return GestureDetector(
-      onTap: () {
-        // TODO: Implementar robar carta
-        print('Robar carta');
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Stack effect - card behind
-          Positioned(
-            left: 3,
-            top: 3,
-            child: Container(
-              width: w,
-              height: h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(2, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  'assets/reverso_carta.png',
-                  fit: BoxFit.fill,
-                ),
-              ),
-            ),
-          ),
-          
-          // Top card
-          Container(
-            width: w,
-            height: h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                'assets/reverso_carta.png',
-                fit: BoxFit.fill,
-              ),
-            ),
-          ),
-          
-          // Count Badge
-          Positioned(
-            top: -8,
-            right: -8,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppTheme.primary,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 2,
-                    offset: const Offset(1, 1),
-                  ),
-                ],
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 24,
-                minHeight: 24,
-              ),
-              child: Center(
-                child: Text(
-                  '${provider.mazoRestante.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
+    
+    final count = provider.mazoRestante.length;
+    // Use stored initial size, fallback to count if 0 (e.g. hot reload without re-init)
+    final initial = provider.initialDeckSize > 0 ? provider.initialDeckSize : count; 
+    final percentage = count / initial;
+    
+    int cardsBelow = 0;
+    if (count > 1) {
+        if (percentage <= 0.08) cardsBelow = 1;
+        else if (percentage <= 0.16) cardsBelow = 2;
+        else cardsBelow = 3;
+    }
+    
+    // Ensure we don't try to show more cards than exist
+    if (cardsBelow > count - 1) cardsBelow = count - 1;
+    
+    List<Widget> stackChildren = [];
+    
+    // Helper for card back
+    Widget buildCardBack() => Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.border, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(2, 2),
           ),
         ],
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(9), // Slightly less than container to fit inside border
+        child: Image.asset(
+          'assets/reverso_carta.png',
+          fit: BoxFit.fill,
+        ),
+      ),
+    );
+
+    // 1. Add cards below
+    for (int i = cardsBelow; i >= 1; i--) {
+        // Deterministic random based on index + count to keep it stable but varied
+        final random = Random(i * 999 + count); 
+        final angleDegrees = -3 + random.nextDouble() * 6;
+        final angleRadians = angleDegrees * (pi / 180);
+        
+        final offsetX = -2 + random.nextDouble() * 4;
+        final offsetY = -2 + random.nextDouble() * 4;
+
+        stackChildren.add(
+            Positioned(
+                left: offsetX,
+                top: offsetY,
+                child: Transform.rotate(
+                    angle: angleRadians,
+                    child: buildCardBack(),
+                ),
+            )
+        );
+    }
+    
+    // 2. Top card + Badge
+    final randomTop = Random(count);
+    final angleDegreesTop = -3 + randomTop.nextDouble() * 6;
+    final angleRadiansTop = angleDegreesTop * (pi / 180);
+
+    stackChildren.add(
+        GestureDetector(
+          onTap: () {
+            // TODO: Implementar robar carta
+            print('Robar carta');
+          },
+          child: Transform.rotate(
+            angle: angleRadiansTop,
+            child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                    buildCardBack(),
+                    
+                    // Count Badge
+                    Positioned(
+                        top: -w * 0.08,
+                        right: -w * 0.08,
+                        child: Container(
+                          padding: EdgeInsets.all(w * 0.06),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: w * 0.025),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: w * 0.02,
+                                offset: Offset(w * 0.01, w * 0.01),
+                              ),
+                            ],
+                          ),
+                          constraints: BoxConstraints(
+                            minWidth: w * 0.25,
+                            minHeight: w * 0.25,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$count',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: w * 0.15,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ),
+                ]
+            ),
+          ),
+        )
+    );
+    
+    return Stack(
+        clipBehavior: Clip.none,
+        children: stackChildren
     );
   }
 }

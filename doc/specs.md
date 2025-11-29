@@ -342,6 +342,39 @@ Como mínimo, se definirán las siguientes clases:
                 - Reemplaza cualquier otro overlay visible (incluido el de eliminación)
                 - Limpia automáticamente todas las animaciones y estados pendientes
 
+## Detalles Visuales y Animaciones
+
+    * Animaciones de Descarte Exitoso
+        - Al realizar un descarte válido, la carta en el montón de descarte ejecuta una animación exagerada para confirmar la acción.
+        - Escala: La carta aumenta su tamaño hasta 3.5x y luego rebota a su tamaño original (curva elástica).
+        - Color: El texto de la operación o resultado coincidente cambia gradualmente de su color original (blanco o negro) a dorado (#FFD700) y vuelve a su color original.
+        - Sombra: Se aplica una sombra difusa intensa que aparece y desaparece durante la animación.
+        - Duración total: 700ms.
+
+    * Estilo de "Pila Desordenada" (Efecto Cascada)
+        - Montones de Descarte:
+            - Se muestran hasta 3 cartas adicionales debajo de la carta superior para representar visualmente la acumulación de cartas.
+            - La cantidad de cartas mostradas debajo depende del porcentaje de cartas acumuladas respecto al total de la baraja (52):
+                - 1 carta debajo: 0.1% - 8% del total.
+                - 2 cartas debajo: 8% - 16% del total.
+                - 3 cartas debajo: > 16% del total.
+            - Las cartas inferiores tienen una rotación aleatoria (-3 a 3 grados) y un ligero desplazamiento aleatorio para simular desorden.
+            - La carta superior también tiene una rotación aleatoria (-3 a 3 grados).
+        - Mazo de Robo (Mazo Restante):
+            - Aplica la misma lógica de cascada que los montones de descarte.
+            - El porcentaje se calcula respecto al tamaño inicial del mazo del jugador (que varía según el número de jugadores).
+            - Muestra el reverso de las cartas con un borde y sombra.
+
+    * Rotación Aleatoria
+        - Todas las cartas en la mano del jugador, en los montones de descarte y en el mazo de robo tienen una rotación aleatoria sutil entre -3 y 3 grados.
+        - La rotación es determinista basada en el identificador de la carta para evitar "temblores" al redibujar.
+
+    * Ajustes de Diseño de Carta
+        - Borde: Grosor reducido a 1px (anteriormente 2px).
+        - Divisiones: El tamaño de la fuente para divisiones con numerador de dos dígitos se reduce por un factor de 0.85 para asegurar que quepan correctamente en el diseño.
+        - Mazo Restante: Incluye un badge circular (responsive) indicando el número de cartas restantes.
+        - Mano del Jugador: Los huecos vacíos (cuando no quedan cartas en el mazo para reponer) son invisibles, mostrando solo el fondo del tablero.
+
 ## Sonidos
     * Durante la pulsación de alguna opción de menú: sonido tipo "pop"
     * Al depositar una carta en el mazo de descartes: no implementar todavía
@@ -350,6 +383,3 @@ Como mínimo, se definirán las siguientes clases:
     * Victoria: no implementar todavía
     * Derrota: no implementar todavía
     * Reparto de cartas: no implementar todavía
-
-
-

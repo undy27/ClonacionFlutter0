@@ -30,6 +30,7 @@ class GameProvider with ChangeNotifier {
   List<Carta> _mazoRestante = [];
   List<List<Carta>> _montonesDescarte = [[], [], [], []];
   List<Carta> _cartasDescartadas = []; // Cartas que el jugador ha descartado exitosamente (historial personal)
+  int _initialDeckSize = 0;
   
   // Store match details for the top card of each discard pile
   final Map<int, MatchDetails> _lastMatchDetails = {};
@@ -40,6 +41,7 @@ class GameProvider with ChangeNotifier {
   List<Carta> get mazoRestante => _mazoRestante;
   List<List<Carta>> get montonesDescarte => _montonesDescarte;
   List<Carta> get cartasDescartadas => _cartasDescartadas;
+  int get initialDeckSize => _initialDeckSize;
   Usuario? get currentUser => _currentUser;
   
   MatchDetails? getLastMatchDetails(int montonIndex) => _lastMatchDetails[montonIndex];
@@ -183,6 +185,7 @@ class GameProvider with ChangeNotifier {
           
           _mano = _baraja.sublist(0, 5);
           _mazoRestante = _baraja.sublist(5, 24); 
+          _initialDeckSize = _mazoRestante.length;
           
           notifyListeners();
         } catch (e, stackTrace) {

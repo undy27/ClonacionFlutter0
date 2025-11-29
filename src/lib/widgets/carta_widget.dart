@@ -102,7 +102,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
           decoration: BoxDecoration(
             color: AppTheme.primary,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppTheme.border, width: 2),
+            border: Border.all(color: AppTheme.border, width: 1),
           ),
           child: Center(
             child: Text(
@@ -127,7 +127,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppTheme.border, width: 2),
+          border: Border.all(color: AppTheme.border, width: 1),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -322,7 +322,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
                   isMatched: widget.matchDetails?.matchedDiv ?? false,
                   child: _buildOperationText(
                     "${widget.carta.division[0]}:${widget.carta.division[1]}",
-                    widget.carta.division[0] >= 10 ? uniformFontSize * 0.9 : uniformFontSize,
+                    widget.carta.division[0] >= 10 ? uniformFontSize * 0.85 : uniformFontSize,
                     Colors.white,
                     isMatched: widget.matchDetails?.matchedDiv ?? false,
                   ),
