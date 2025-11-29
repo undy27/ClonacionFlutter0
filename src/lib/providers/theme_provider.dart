@@ -34,6 +34,12 @@ class ThemeProvider with ChangeNotifier {
     if (styleString != null) {
       if (styleString == 'clasico' || styleString == 'classic') {
         _themeStyle = AppThemeStyle.classic;
+      } else if (styleString == 'glassmorphism') {
+        _themeStyle = AppThemeStyle.glassmorphism;
+      } else if (styleString == 'claymorphism') {
+        _themeStyle = AppThemeStyle.claymorphism;
+      } else if (styleString == 'skeuomorphism') {
+        _themeStyle = AppThemeStyle.skeuomorphism;
       } else {
         _themeStyle = AppThemeStyle.neoBrutalist;
       }
@@ -53,7 +59,13 @@ class ThemeProvider with ChangeNotifier {
     _themeStyle = style;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('themeStyle', style == AppThemeStyle.classic ? 'clasico' : 'neo_brutalista');
+    String styleStr = 'neo_brutalista';
+    if (style == AppThemeStyle.classic) styleStr = 'clasico';
+    else if (style == AppThemeStyle.glassmorphism) styleStr = 'glassmorphism';
+    else if (style == AppThemeStyle.claymorphism) styleStr = 'claymorphism';
+    else if (style == AppThemeStyle.skeuomorphism) styleStr = 'skeuomorphism';
+    
+    await prefs.setString('themeStyle', styleStr);
   }
 
   void syncFromUser(bool isDark, String themeInterface) {
@@ -69,9 +81,16 @@ class ThemeProvider with ChangeNotifier {
     }
     
     // Sync Theme Style
-    AppThemeStyle newStyle = (themeInterface == 'clasico' || themeInterface == 'classic') 
-        ? AppThemeStyle.classic 
-        : AppThemeStyle.neoBrutalist;
+    AppThemeStyle newStyle = AppThemeStyle.neoBrutalist;
+    if (themeInterface == 'clasico' || themeInterface == 'classic') {
+      newStyle = AppThemeStyle.classic;
+    } else if (themeInterface == 'glassmorphism') {
+      newStyle = AppThemeStyle.glassmorphism;
+    } else if (themeInterface == 'claymorphism') {
+      newStyle = AppThemeStyle.claymorphism;
+    } else if (themeInterface == 'skeuomorphism') {
+      newStyle = AppThemeStyle.skeuomorphism;
+    }
         
     if (_themeStyle != newStyle) {
       _themeStyle = newStyle;

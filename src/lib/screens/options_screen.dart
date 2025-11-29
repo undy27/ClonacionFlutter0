@@ -114,6 +114,18 @@ class OptionsScreen extends StatelessWidget {
                               value: AppThemeStyle.classic,
                               child: Text("CLÁSICO", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
                             ),
+                            DropdownMenuItem(
+                              value: AppThemeStyle.glassmorphism,
+                              child: Text("GLASSMORPHISM", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ),
+                            DropdownMenuItem(
+                              value: AppThemeStyle.claymorphism,
+                              child: Text("CLAYMORPHISM", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ),
+                            DropdownMenuItem(
+                              value: AppThemeStyle.skeuomorphism,
+                              child: Text("SKEUOMORPHISM", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ),
                           ],
                           onChanged: (AppThemeStyle? newValue) {
                             if (newValue != null) {
@@ -121,9 +133,15 @@ class OptionsScreen extends StatelessWidget {
                               themeProvider.setThemeStyle(newValue);
                               final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
                               if (user != null && !user.isGuest) {
+                                 String themeStr = 'neo_brutalista';
+                                 if (newValue == AppThemeStyle.classic) themeStr = 'clasico';
+                                 else if (newValue == AppThemeStyle.glassmorphism) themeStr = 'glassmorphism';
+                                 else if (newValue == AppThemeStyle.claymorphism) themeStr = 'claymorphism';
+                                 else if (newValue == AppThemeStyle.skeuomorphism) themeStr = 'skeuomorphism';
+                                 
                                  PostgresService().updateTemaInterfaz(
                                    user.id, 
-                                   newValue == AppThemeStyle.classic ? 'clasico' : 'neo_brutalista'
+                                   themeStr
                                  );
                               }
                             }
