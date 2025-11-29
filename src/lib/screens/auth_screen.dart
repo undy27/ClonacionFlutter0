@@ -16,7 +16,9 @@ enum AuthMode { menu, login, register, guest }
 
 class _AuthScreenState extends State<AuthScreen> {
   AuthMode _mode = AuthMode.menu;
-  final _formKey = GlobalKey<FormState>();
+  final _loginFormKey = GlobalKey<FormState>();
+  final _registerFormKey = GlobalKey<FormState>();
+  final _guestFormKey = GlobalKey<FormState>();
   final _aliasController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -104,6 +106,11 @@ class _AuthScreenState extends State<AuthScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
+    GlobalKey<FormState> currentKey;
+    if (isLogin) currentKey = _loginFormKey;
+    else if (isRegister) currentKey = _registerFormKey;
+    else currentKey = _guestFormKey;
+    
     return Container(
       key: ValueKey(title),
       padding: const EdgeInsets.all(24),
@@ -117,7 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
         boxShadow: AppTheme.hardShadow,
       ),
       child: Form(
-        key: _formKey,
+        key: currentKey,
         child: Column(
           children: [
             Row(
@@ -171,7 +178,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       text: "ENTRAR",
                       color: AppTheme.success,
                       onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
+                        if (currentKey.currentState!.validate()) {
                           bool success = false;
                           final alias = _aliasController.text;
                           final password = _passwordController.text;
@@ -187,7 +194,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (success && mounted) {
                              final user = authProvider.currentUser;
                              if (user != null) {
-                                Provider.of<ThemeProvider>(context, listen: false).syncFromUser(user.isDarkMode);
+                                Provider.of<ThemeProvider>(context, listen: false).syncFromUser(user.isDarkMode, user.temaInterfaz);
                              }
                              Navigator.pushReplacementNamed(context, '/home');
                           } else if (mounted) {

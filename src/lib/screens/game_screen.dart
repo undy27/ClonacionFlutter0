@@ -88,7 +88,7 @@ class _GameScreenState extends State<GameScreen> {
                   Padding(
                     padding: const EdgeInsets.only(left: leftMargin),
                     child: SizedBox(
-                      width: (cardWidth * 2) + 20, // 2 cards + spacing between them
+                      width: (cardWidth * 2) + (cardSpacingHorizontal * 1.5),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -119,8 +119,9 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   ),
-                  // Spacing between discard piles and player info - EXACTLY 20px
-                  const SizedBox(width: 20),
+                  // Spacing between discard piles and player info
+                  const SizedBox(width: 12),
+          
                   // Right: Player information - expands to fill remaining space
                   Expanded(
                     child: Padding(
@@ -334,107 +335,102 @@ class _GameScreenState extends State<GameScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCurrentUser = jugador.id == provider.currentUser?.id;
     
-    // Scale all elements based on available height
-    // Reduced factors to fit in smaller box and avoid overflow
-    final avatarRadius = (availableHeight * 0.20).clamp(8.0, 16.0); // Reduced further
-    final fontSize = (availableHeight * 0.14 * 0.9).clamp(8.0, 11.0);
-    final iconSize = (availableHeight * 0.11).clamp(8.0, 12.0);
-    final padding = (availableHeight * 0.08).clamp(2.0, 5.0); // Reduced padding base
+    // Scale elements
+    // Reduced avatar size further to fit in box (0.315 -> 0.28)
+    final avatarRadius = (availableHeight * 0.28).clamp(10.0, 20.0);
+    final fontSizeStats = (availableHeight * 0.18).clamp(10.0, 14.0);
+    final iconSize = (availableHeight * 0.18).clamp(12.0, 16.0);
     
     return Container(
       height: availableHeight,
-      margin: EdgeInsets.symmetric(vertical: padding * 0.5, horizontal: padding * 0.5),
-      padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
         color: isCurrentUser 
             ? (isDark ? AppTheme.primary.withOpacity(0.3) : AppTheme.primary.withOpacity(0.1))
-            : (isDark ? AppTheme.darkSurface : Colors.white),
-        borderRadius: BorderRadius.circular(padding * 1.5),
+            : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrentUser 
-              ? (isDark ? AppTheme.primary : AppTheme.primary)
-              : (isDark ? AppTheme.darkBorder : AppTheme.border),
-          width: 2,
+          color: isCurrentUser ? AppTheme.primary : (isDark ? Colors.white24 : Colors.black12),
+          width: isCurrentUser ? 2 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Avatar
-          CircleAvatar(
-            radius: avatarRadius,
-            backgroundColor: isDark ? AppTheme.primary : AppTheme.primary,
-            child: Text(
-              jugador.alias.isNotEmpty ? jugador.alias[0].toUpperCase() : '?',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: avatarRadius * 0.8,
-              ),
-            ),
-          ),
-          SizedBox(width: padding * 0.5), // Minimal spacing
-          // Name and info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  jugador.alias,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: fontSize,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                SizedBox(height: padding * 0.2),
-                Row(
-                  children: [
-                    Icon(Icons.style, size: iconSize, color: Colors.grey[600]),
-                    SizedBox(width: padding * 0.5),
-                    Flexible(
-                      child: Text(
-                        '${provider.mano.length}', 
-                        style: TextStyle(
-                          fontSize: fontSize * 0.85,
-                          color: isDark ? Colors.grey[400] : Colors.grey[700],
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: padding * 0.2), // Minimal spacing
-          // Penalties indicator
           Container(
-            padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding * 0.2),
             decoration: BoxDecoration(
-              color: AppTheme.error.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(padding),
-              border: Border.all(color: AppTheme.error, width: 1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: isCurrentUser ? AppTheme.primary : Colors.transparent, 
+                  width: 2
+              ),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.1), 
+                    blurRadius: 4, 
+                    offset: const Offset(0, 2)
+                )
+              ]
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.warning_amber_rounded, size: iconSize, color: AppTheme.error),
-                SizedBox(width: padding * 0.2),
-                Text(
-                  '0', 
-                  style: TextStyle(
-                    color: AppTheme.error,
-                    fontWeight: FontWeight.bold,
-                    fontSize: fontSize * 0.9,
+            child: CircleAvatar(
+              radius: avatarRadius,
+              backgroundColor: Colors.grey[200],
+              backgroundImage: AssetImage('assets/avatars/${jugador.avatar ?? 'default'}.png'),
+              onBackgroundImageError: (_, __) {},
+              child: (jugador.avatar == null || jugador.avatar == 'default') ? Icon(Icons.person, size: avatarRadius, color: Colors.grey) : null,
+            ),
+          ),
+          
+          const SizedBox(width: 4), // Reduced spacing between avatar and stats
+          
+          // Stats Column
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Cards Row
+              Row(
+                children: [
+                  // Icon removed as requested
+                  Text(
+                    '${jugador.cartasRestantes}',
+                    style: TextStyle(
+                        fontSize: fontSizeStats, 
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.grey[300] : Colors.black87
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              
+              const SizedBox(height: 2),
+              
+              // Penalties Row
+              Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: iconSize, color: jugador.penalizaciones > 0 ? AppTheme.error : Colors.grey[400]),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${jugador.penalizaciones}',
+                    style: TextStyle(
+                        fontSize: fontSizeStats, 
+                        color: jugador.penalizaciones > 0 ? AppTheme.error : Colors.grey[600], 
+                        fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

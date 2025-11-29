@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Clonación',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: AppTheme.getTheme(themeProvider.themeStyle, Brightness.light),
+      darkTheme: AppTheme.getTheme(themeProvider.themeStyle, Brightness.dark),
       themeMode: themeProvider.themeMode,
       initialRoute: '/',
       routes: {

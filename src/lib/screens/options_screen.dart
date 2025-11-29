@@ -70,6 +70,72 @@ class OptionsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
+              // Interface Theme Selector
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, child) {
+                  final isNeo = themeProvider.themeStyle == AppThemeStyle.neoBrutalist;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? (isNeo ? AppTheme.darkBorder : Colors.white24) 
+                            : (isNeo ? AppTheme.border : Colors.black12), 
+                        width: isNeo ? 2 : 1
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isNeo ? AppTheme.smallHardShadow : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "TEMA VISUAL",
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        DropdownButton<AppThemeStyle>(
+                          value: themeProvider.themeStyle,
+                          underline: const SizedBox(),
+                          icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          items: [
+                            DropdownMenuItem(
+                              value: AppThemeStyle.neoBrutalist,
+                              child: Text("NEO-BRUTALISTA", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ),
+                            DropdownMenuItem(
+                              value: AppThemeStyle.classic,
+                              child: Text("CLÁSICO", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
+                            ),
+                          ],
+                          onChanged: (AppThemeStyle? newValue) {
+                            if (newValue != null) {
+                              SystemSound.play(SystemSoundType.click);
+                              themeProvider.setThemeStyle(newValue);
+                              final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+                              if (user != null && !user.isGuest) {
+                                 PostgresService().updateTemaInterfaz(
+                                   user.id, 
+                                   newValue == AppThemeStyle.classic ? 'clasico' : 'neo_brutalista'
+                                 );
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
               // Card Theme Button
               SizedBox(
                 width: double.infinity,

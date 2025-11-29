@@ -11,6 +11,7 @@ class Usuario {
   final int? mejorTiempoVictoria3j;
   final int? mejorTiempoVictoria4j;
   final String temaCartas;
+  final String temaInterfaz;
   final bool isGuest;
   final bool isDarkMode;
 
@@ -27,6 +28,7 @@ class Usuario {
     this.mejorTiempoVictoria3j,
     this.mejorTiempoVictoria4j,
     this.temaCartas = 'clasico',
+    this.temaInterfaz = 'neo_brutalista',
     this.isGuest = false,
     this.isDarkMode = false,
   });
@@ -45,6 +47,7 @@ class Usuario {
       mejorTiempoVictoria3j: json['mejor_tiempo_victoria_3j'],
       mejorTiempoVictoria4j: json['mejor_tiempo_victoria_4j'],
       temaCartas: json['tema_cartas'] ?? 'clasico',
+      temaInterfaz: json['tema_interfaz'] ?? 'neo_brutalista',
       isGuest: json['is_guest'] ?? false,
       isDarkMode: json['is_dark_mode'] ?? false,
     );
@@ -64,6 +67,7 @@ class Usuario {
       'mejor_tiempo_victoria_3j': mejorTiempoVictoria3j,
       'mejor_tiempo_victoria_4j': mejorTiempoVictoria4j,
       'tema_cartas': temaCartas,
+      'tema_interfaz': temaInterfaz,
       'is_guest': isGuest,
       'is_dark_mode': isDarkMode,
     };

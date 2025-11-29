@@ -1,19 +1,34 @@
 class JugadorInfo {
   final String id;
   final String alias;
+  final String? avatar;
+  final int cartasRestantes;
+  final int penalizaciones;
   
-  JugadorInfo({required this.id, required this.alias});
+  JugadorInfo({
+    required this.id, 
+    required this.alias,
+    this.avatar,
+    this.cartasRestantes = 0,
+    this.penalizaciones = 0,
+  });
   
   factory JugadorInfo.fromJson(Map<String, dynamic> json) {
     return JugadorInfo(
       id: json['id'],
       alias: json['alias'],
+      avatar: json['avatar'], // Puede ser null
+      cartasRestantes: json['cartas_restantes'] ?? 0,
+      penalizaciones: json['penalizaciones'] ?? 0,
     );
   }
   
   Map<String, dynamic> toJson() => {
     'id': id,
     'alias': alias,
+    'avatar': avatar,
+    'cartas_restantes': cartasRestantes,
+    'penalizaciones': penalizaciones,
   };
 }
 

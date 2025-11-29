@@ -67,6 +67,8 @@ class AppTheme {
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: text,
+          inherit: false,
+          textBaseline: TextBaseline.alphabetic,
         ),
         iconTheme: IconThemeData(color: text),
         shape: Border(bottom: BorderSide(color: border, width: 3)),
@@ -103,6 +105,8 @@ class AppTheme {
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: darkText,
+          inherit: false,
+          textBaseline: TextBaseline.alphabetic,
         ),
         iconTheme: IconThemeData(color: darkText),
         shape: Border(bottom: BorderSide(color: darkBorder, width: 3)),
@@ -119,23 +123,31 @@ class AppTheme {
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
       ),
       displayMedium: TextStyle(
         fontFamily: 'LexendMega',
         fontSize: 24,
         fontWeight: FontWeight.bold,
         color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
       ),
       bodyLarge: TextStyle(
         fontFamily: 'SpaceMono',
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
       ),
       bodyMedium: TextStyle(
         fontFamily: 'SpaceMono',
         fontSize: 14,
         color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
       ),
     );
   }
@@ -151,6 +163,8 @@ class AppTheme {
           fontFamily: 'LexendMega',
           fontSize: 16,
           fontWeight: FontWeight.bold,
+          inherit: false,
+          textBaseline: TextBaseline.alphabetic,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -190,4 +204,134 @@ class AppTheme {
       ),
     );
   }
+
+  // ==================== CLASSIC THEME ====================
+
+  static ThemeData getTheme(AppThemeStyle style, Brightness brightness) {
+    switch (style) {
+      case AppThemeStyle.classic:
+        return brightness == Brightness.dark ? classicDarkTheme : classicLightTheme;
+      case AppThemeStyle.neoBrutalist:
+      default:
+        return brightness == Brightness.dark ? darkTheme : lightTheme;
+    }
+  }
+
+  static ThemeData get classicLightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorSchemeSeed: const Color(0xFF1976D2), // Blue
+      scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Color(0xFF1976D2),
+        foregroundColor: Colors.white,
+        titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          inherit: false,
+          textBaseline: TextBaseline.alphabetic,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(8),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            inherit: false,
+            textBaseline: TextBaseline.alphabetic,
+          ),
+        ),
+      ),
+      textTheme: _buildClassicTextTheme(Colors.black87),
+    );
+  }
+
+  static ThemeData get classicDarkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorSchemeSeed: const Color(0xFF1976D2),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(8),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            inherit: false,
+            textBaseline: TextBaseline.alphabetic,
+          ),
+        ),
+      ),
+      textTheme: _buildClassicTextTheme(Colors.white),
+    );
+  }
+
+  static TextTheme _buildClassicTextTheme(Color textColor) {
+    return TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: 'Roboto',
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
+      ),
+      displayMedium: TextStyle(
+        fontFamily: 'Roboto',
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: 'Roboto',
+        fontSize: 16,
+        color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: 'Roboto',
+        fontSize: 14,
+        color: textColor,
+        inherit: false,
+        textBaseline: TextBaseline.alphabetic,
+      ),
+    );
+  }
+}
+
+enum AppThemeStyle {
+  neoBrutalist,
+  classic,
 }
