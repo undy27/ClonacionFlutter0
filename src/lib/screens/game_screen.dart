@@ -33,32 +33,36 @@ class _GameScreenState extends State<GameScreen> {
     const double bottomMargin = 20.0;
     const double leftMargin = 20.0;
     const double rightMargin = 20.0;
-    const double verticalSpacing = 36.0; // Between upper and lower zones
+    const double minVerticalSpacing = 20.0; // Minimum space between zones
     const double cardSpacing = 12.0; // Between rows of cards (vertical)
     const double cardSpacingHorizontal = 10.0; // Between cards in the same row
     
-    // Available space after fixed margins
-    final availableHeight = size.height - topMargin - bottomMargin - verticalSpacing;
+    // Available space after fixed margins and minimum spacing
+    final availableHeight = size.height - topMargin - bottomMargin - minVerticalSpacing;
     
     // Calculate card size based on available height
     // Upper zone: 2 rows of cards + spacing between them
-    // Lower zone: 2 rows of cards + spacing between them
-    // Total: 4 card heights + 3 spacings
-    final cardHeight = (availableHeight - (cardSpacing * 3)) / 4;
+    // Constraint 1: Vertical space
+    final maxCardHeight = (availableHeight - (cardSpacing * 3)) / 4;
     
-    // Calculate width based on aspect ratio
-    double calculatedCardWidth = cardHeight / 1.5;
-    
-    // Ensure width fits in screen with fixed spacing
+    // Constraint 2: Horizontal space
     final availableWidth = size.width - leftMargin - rightMargin;
-    // We need to fit 3 cards with 2 spaces of cardSpacingHorizontal
     final maxCardWidth = (availableWidth - (cardSpacingHorizontal * 2)) / 3;
     
-    if (calculatedCardWidth > maxCardWidth) {
-      calculatedCardWidth = maxCardWidth;
-    }
+    // Desired Aspect Ratio: Original (1/1.5) increased by 5%
+    // Ratio = Width / Height
+    // New Ratio = (1 / 1.5) * 1.05 = 0.7
+    const double targetRatio = (1 / 1.5) * 1.05;
     
-    final cardWidth = calculatedCardWidth;
+    // Calculate height based on width and ratio
+    // H = W / R
+    final heightFromWidth = maxCardWidth / targetRatio;
+    
+    // Use the smaller height to ensure it fits both horizontally and vertically
+    final cardHeight = heightFromWidth < maxCardHeight ? heightFromWidth : maxCardHeight;
+    
+    // Width is derived from height and ratio to maintain aspect
+    final cardWidth = cardHeight * targetRatio;
     
     // Calculate actual zone heights
     final upperZoneHeight = (cardHeight * 2) + cardSpacing;
@@ -130,8 +134,8 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
             
-            // Vertical spacing between zones
-            const SizedBox(height: verticalSpacing),
+            // Flexible vertical spacing between zones
+            const Spacer(),
               
             // LOWER ZONE: Player hand
             SizedBox(
@@ -227,6 +231,7 @@ class _GameScreenState extends State<GameScreen> {
           carta: topCard,
           width: w,
           height: h,
+          matchDetails: provider.getLastMatchDetails(index),
         );
       },
     );
@@ -374,22 +379,10 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHandCard(int index, GameProvider provider, double w, double h) {
     if (index >= provider.mano.length) {
-      // Empty slot
-      return Container(
+      // Empty slot - invisible
+      return SizedBox(
         width: w,
         height: h,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.withOpacity(0.3), width: 2),
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.grey.withOpacity(0.05),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.add_card_outlined,
-            color: Colors.grey.withOpacity(0.3),
-            size: w * 0.3,
-          ),
-        ),
       );
     }
     
@@ -435,58 +428,88 @@ class _GameScreenState extends State<GameScreen> {
     if (provider.mazoRestante.isEmpty) {
       return SizedBox(width: w, height: h);
     }
-    
     return GestureDetector(
       onTap: () {
-        // TODO: Implement draw card logic
-        print('Deck tapped - implement draw card');
+        // TODO: Implementar robar carta
+        print('Robar carta');
       },
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // Stack effect - multiple cards behind (shifted slightly right/bottom)
-          ...List.generate(3, (i) {
-            return Positioned(
-              left: (i + 1) * 2.0,
-              top: (i + 1) * 2.0,
-              child: Container(
-                width: w,
-                height: h,
-                decoration: BoxDecoration(
-                  color: AppTheme.primary,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.black, width: 2),
+          // Stack effect - card behind
+          Positioned(
+            left: 3,
+            top: 3,
+            child: Container(
+              width: w,
+              height: h,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/reverso_carta.png',
+                  fit: BoxFit.fill,
                 ),
               ),
-            );
-          }),
-          // Top card with counter - ALIGNED AT 0,0
+            ),
+          ),
+          
+          // Top card
           Container(
             width: w,
             height: h,
             decoration: BoxDecoration(
-              color: AppTheme.primary,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.black, width: 3),
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.layers,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${provider.mazoRestante.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18, // Reduced from 20
-                    ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/reverso_carta.png',
+                fit: BoxFit.fill,
+              ),
+            ),
+          ),
+          
+          // Count Badge
+          Positioned(
+            top: -8,
+            right: -8,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 2,
+                    offset: const Offset(1, 1),
                   ),
                 ],
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 24,
+                minHeight: 24,
+              ),
+              child: Center(
+                child: Text(
+                  '${provider.mazoRestante.length}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             ),
           ),
