@@ -28,12 +28,14 @@ class _GameScreenState extends State<GameScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Fixed margins - NEVER change with screen size
-    const double topMargin = 4.0;
-    const double bottomMargin = 4.0;
-    const double leftMargin = 12.0;
-    const double rightMargin = 12.0;
-    const double verticalSpacing = 36.0; // Between upper and lower zones (tripled from 12)
-    const double cardSpacing = 12.0; // Between rows of cards
+    // Fixed margins - NEVER change with screen size
+    const double topMargin = 60.0;
+    const double bottomMargin = 20.0;
+    const double leftMargin = 20.0;
+    const double rightMargin = 20.0;
+    const double verticalSpacing = 36.0; // Between upper and lower zones
+    const double cardSpacing = 12.0; // Between rows of cards (vertical)
+    const double cardSpacingHorizontal = 10.0; // Between cards in the same row
     
     // Available space after fixed margins
     final availableHeight = size.height - topMargin - bottomMargin - verticalSpacing;
@@ -43,14 +45,27 @@ class _GameScreenState extends State<GameScreen> {
     // Lower zone: 2 rows of cards + spacing between them
     // Total: 4 card heights + 3 spacings
     final cardHeight = (availableHeight - (cardSpacing * 3)) / 4;
-    final cardWidth = cardHeight / 1.5;
+    
+    // Calculate width based on aspect ratio
+    double calculatedCardWidth = cardHeight / 1.5;
+    
+    // Ensure width fits in screen with fixed spacing
+    final availableWidth = size.width - leftMargin - rightMargin;
+    // We need to fit 3 cards with 2 spaces of cardSpacingHorizontal
+    final maxCardWidth = (availableWidth - (cardSpacingHorizontal * 2)) / 3;
+    
+    if (calculatedCardWidth > maxCardWidth) {
+      calculatedCardWidth = maxCardWidth;
+    }
+    
+    final cardWidth = calculatedCardWidth;
     
     // Calculate actual zone heights
     final upperZoneHeight = (cardHeight * 2) + cardSpacing;
     final lowerZoneHeight = (cardHeight * 2) + cardSpacing;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.only(
           top: topMargin,
@@ -130,10 +145,14 @@ class _GameScreenState extends State<GameScreen> {
                     SizedBox(
                       height: cardHeight,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(3, (index) {
-                          return _buildHandCard(index, gameProvider, cardWidth, cardHeight);
-                        }),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildHandCard(0, gameProvider, cardWidth, cardHeight),
+                          SizedBox(width: cardSpacingHorizontal),
+                          _buildHandCard(1, gameProvider, cardWidth, cardHeight),
+                          SizedBox(width: cardSpacingHorizontal),
+                          _buildHandCard(2, gameProvider, cardWidth, cardHeight),
+                        ],
                       ),
                     ),
                     const SizedBox(height: cardSpacing),
@@ -141,10 +160,12 @@ class _GameScreenState extends State<GameScreen> {
                     SizedBox(
                       height: cardHeight,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildHandCard(3, gameProvider, cardWidth, cardHeight),
+                          SizedBox(width: cardSpacingHorizontal),
                           _buildHandCard(4, gameProvider, cardWidth, cardHeight),
+                          SizedBox(width: cardSpacingHorizontal),
                           _buildDeck(gameProvider, cardWidth, cardHeight),
                         ],
                       ),
@@ -231,8 +252,8 @@ class _GameScreenState extends State<GameScreen> {
     final availableHeight = size.height - topMargin - bottomMargin - verticalSpacing;
     final cardHeight = (availableHeight - (cardSpacing * 3)) / 4;
     
-    // Each player info box is half the height of a card
-    final playerBoxHeight = cardHeight / 2;
+    // Each player info box is smaller than half the height of a card
+    final playerBoxHeight = cardHeight / 2.5;
     
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -245,15 +266,16 @@ class _GameScreenState extends State<GameScreen> {
     final isCurrentUser = jugador.id == provider.currentUser?.id;
     
     // Scale all elements based on available height
-    final avatarRadius = (availableHeight * 0.25).clamp(12.0, 24.0);
-    final fontSize = (availableHeight * 0.15).clamp(10.0, 14.0);
-    final iconSize = (availableHeight * 0.12).clamp(10.0, 14.0);
-    final padding = (availableHeight * 0.08).clamp(4.0, 8.0);
+    // Reduced factors to fit in smaller box and avoid overflow
+    final avatarRadius = (availableHeight * 0.20).clamp(8.0, 16.0); // Reduced further
+    final fontSize = (availableHeight * 0.14 * 0.9).clamp(8.0, 11.0);
+    final iconSize = (availableHeight * 0.11).clamp(8.0, 12.0);
+    final padding = (availableHeight * 0.08).clamp(2.0, 5.0); // Reduced padding base
     
     return Container(
       height: availableHeight,
-      margin: EdgeInsets.symmetric(vertical: padding * 0.5, horizontal: padding),
-      padding: EdgeInsets.all(padding),
+      margin: EdgeInsets.symmetric(vertical: padding * 0.5, horizontal: padding * 0.5),
+      padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding),
       decoration: BoxDecoration(
         color: isCurrentUser 
             ? (isDark ? AppTheme.primary.withOpacity(0.3) : AppTheme.primary.withOpacity(0.1))
@@ -281,7 +303,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          SizedBox(width: padding * 1.5),
+          SizedBox(width: padding * 0.5), // Minimal spacing
           // Name and info
           Expanded(
             child: Column(
@@ -299,14 +321,14 @@ class _GameScreenState extends State<GameScreen> {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
-                SizedBox(height: padding * 0.25),
+                SizedBox(height: padding * 0.2),
                 Row(
                   children: [
                     Icon(Icons.style, size: iconSize, color: Colors.grey[600]),
                     SizedBox(width: padding * 0.5),
                     Flexible(
                       child: Text(
-                        'Cartas: ${provider.mano.length}', // TODO: Get actual remaining cards per player
+                        '${provider.mano.length}', 
                         style: TextStyle(
                           fontSize: fontSize * 0.85,
                           color: isDark ? Colors.grey[400] : Colors.grey[700],
@@ -320,9 +342,10 @@ class _GameScreenState extends State<GameScreen> {
               ],
             ),
           ),
+          SizedBox(width: padding * 0.2), // Minimal spacing
           // Penalties indicator
           Container(
-            padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding * 0.5),
+            padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding * 0.2),
             decoration: BoxDecoration(
               color: AppTheme.error.withOpacity(0.2),
               borderRadius: BorderRadius.circular(padding),
@@ -332,9 +355,9 @@ class _GameScreenState extends State<GameScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.warning_amber_rounded, size: iconSize, color: AppTheme.error),
-                SizedBox(width: padding * 0.5),
+                SizedBox(width: padding * 0.2),
                 Text(
-                  '0', // TODO: Get actual penalties
+                  '0', 
                   style: TextStyle(
                     color: AppTheme.error,
                     fontWeight: FontWeight.bold,
@@ -420,11 +443,11 @@ class _GameScreenState extends State<GameScreen> {
       },
       child: Stack(
         children: [
-          // Stack effect - multiple cards behind
+          // Stack effect - multiple cards behind (shifted slightly right/bottom)
           ...List.generate(3, (i) {
             return Positioned(
-              left: i * 2.0,
-              top: i * 2.0,
+              left: (i + 1) * 2.0,
+              top: (i + 1) * 2.0,
               child: Container(
                 width: w,
                 height: h,
@@ -436,11 +459,10 @@ class _GameScreenState extends State<GameScreen> {
               ),
             );
           }),
-          // Top card with counter
+          // Top card with counter - ALIGNED AT 0,0
           Container(
             width: w,
             height: h,
-            margin: const EdgeInsets.only(left: 6, top: 6),
             decoration: BoxDecoration(
               color: AppTheme.primary,
               borderRadius: BorderRadius.circular(10),
@@ -461,7 +483,7 @@ class _GameScreenState extends State<GameScreen> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 18, // Reduced from 20
                     ),
                   ),
                 ],

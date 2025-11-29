@@ -16,7 +16,7 @@ class AppTheme {
   static const Color border = Colors.black;
 
   // Dark Mode Palette
-  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkBackground = Colors.black;
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkText = Colors.white;
   static const Color darkBorder = Colors.white;

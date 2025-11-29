@@ -158,17 +158,21 @@ class CartaWidget extends StatelessWidget {
         double scaleX(double x) => (x / 161.0) * w;
         double scaleY(double y) => (y / 216.0) * h;
 
-        // Cálculo de fuente uniforme
-        // Objetivo: "10x10" cabe en un círculo de diámetro D con margen M
-        // D = w * 0.32 (aprox 32% del ancho, tamaño visual de los círculos/zonas)
-        // M = 8 (4px a cada lado)
-        // Factor empírico para LexendMega: ~3.2 para 5 caracteres ("10x10")
+        // Cálculo de fuente responsivo basado en el tamaño de la carta
+        // El diámetro de los círculos es aproximadamente 32% del ancho de la carta
         double diameter = w * 0.32;
-        double margin = 8.0;
-        double uniformFontSize = (diameter - margin) / 3.2;
         
-        // Asegurar un mínimo legible
-        if (uniformFontSize < 8) uniformFontSize = 8;
+        // Margen fijo: 4px a cada lado = 8px total
+        const double margin = 8.0;
+        
+        // Calcular fontSize para que el texto quepa en el círculo
+        // Para "10x10" (5 caracteres con LexendMega Bold)
+        // Reducido a 2.0 para aprovechar mucho más el espacio
+        // Y reducido un 10% adicional globalmente
+        double uniformFontSize = ((diameter - margin) / 2.0) * 0.9;
+        
+        // Sin límite superior, solo mínimo para legibilidad
+        if (uniformFontSize < 7) uniformFontSize = 7;
 
         return Stack(
           children: [
@@ -183,31 +187,31 @@ class CartaWidget extends StatelessWidget {
             // Multiplications (Dark Blue Area)
             // Centros aproximados visuales en SVG original (161x216)
             
-            // Mult 1: Top Left (x~40, y~45)
+            // Mult 1: Top Left (x~40, y~43) - Adjusted Y for better centering
             Positioned(
               left: scaleX(40) - (diameter / 2), 
-              top: scaleY(45) - (diameter / 2),
+              top: scaleY(43) - (diameter / 2),
               width: diameter,
               height: diameter,
               child: Center(
                 child: _buildOperationText(
                   "${carta.multiplicaciones[0][0]}×${carta.multiplicaciones[0][1]}",
-                  uniformFontSize,
+                  carta.multiplicaciones[0].contains(10) ? uniformFontSize * 0.9 : uniformFontSize,
                   Colors.white
                 ),
               ),
             ),
             
-            // Mult 2: Top Right (x~120, y~45)
+            // Mult 2: Top Right (x~120, y~43) - Adjusted Y for better centering
             Positioned(
               left: scaleX(120) - (diameter / 2),
-              top: scaleY(45) - (diameter / 2),
+              top: scaleY(43) - (diameter / 2),
               width: diameter,
               height: diameter,
               child: Center(
                 child: _buildOperationText(
                   "${carta.multiplicaciones[1][0]}×${carta.multiplicaciones[1][1]}",
-                  uniformFontSize,
+                  carta.multiplicaciones[1].contains(10) ? uniformFontSize * 0.9 : uniformFontSize,
                   Colors.white
                 ),
               ),
@@ -222,7 +226,7 @@ class CartaWidget extends StatelessWidget {
               child: Center(
                 child: _buildOperationText(
                   "${carta.multiplicaciones[2][0]}×${carta.multiplicaciones[2][1]}",
-                  uniformFontSize,
+                  carta.multiplicaciones[2].contains(10) ? uniformFontSize * 0.9 : uniformFontSize,
                   Colors.white
                 ),
               ),
@@ -238,7 +242,7 @@ class CartaWidget extends StatelessWidget {
               child: Center(
                 child: _buildOperationText(
                   "${carta.division[0]}:${carta.division[1]}",
-                  uniformFontSize,
+                  carta.division[0] >= 10 ? uniformFontSize * 0.95 : uniformFontSize,
                   Colors.white
                 ),
               ),
@@ -276,7 +280,8 @@ class CartaWidget extends StatelessWidget {
           fontSize: fontSize,
           color: color,
           fontWeight: FontWeight.bold,
-          height: 1.0, // Tight height for better centering
+          height: 1.0,
+          leadingDistribution: TextLeadingDistribution.even, // Distribuir espacio uniformemente
         ),
       );
   }
