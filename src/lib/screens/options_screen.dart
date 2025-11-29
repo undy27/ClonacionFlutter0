@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -56,6 +57,7 @@ class OptionsScreen extends StatelessWidget {
                       value: themeProvider.isDarkMode,
                       activeColor: AppTheme.primary,
                       onChanged: (value) {
+                        SystemSound.play(SystemSoundType.click);
                         themeProvider.toggleTheme(value);
                         final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
                         if (user != null && !user.isGuest) {

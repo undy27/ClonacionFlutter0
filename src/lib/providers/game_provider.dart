@@ -45,8 +45,9 @@ class GameProvider with ChangeNotifier {
   }
 
   Future<bool> createPartida(String nombre, int jugadores, int minRating, int maxRating) async {
+    print('GameProvider.createPartida: Called with nombre=$nombre, jugadores=$jugadores');
     if (_currentUser == null) {
-      print("Error: No user logged in");
+      print("GameProvider.createPartida: Error - No user logged in");
       return false;
     }
 
@@ -64,6 +65,7 @@ class GameProvider with ChangeNotifier {
       }
 
       final uuid = DateTime.now().millisecondsSinceEpoch.toString();
+      print('GameProvider.createPartida: Calling PostgresService.createPartida with id=$uuid');
 
       final newPartida = await PostgresService().createPartida(
         id: uuid,
@@ -74,15 +76,21 @@ class GameProvider with ChangeNotifier {
         ratingMax: maxRating,
       );
 
+      print('GameProvider.createPartida: PostgresService returned ${newPartida != null ? "Partida object" : "NULL"}');
+      
       if (newPartida != null) {
+        print('GameProvider.createPartida: Partida received, setting _currentPartida');
         _currentPartida = newPartida;
         _partidas.insert(0, newPartida);
         notifyListeners();
+        print('GameProvider.createPartida: Success, returning true');
         return true;
       }
+      print('GameProvider.createPartida: newPartida is NULL, returning false');
       return false;
-    } catch (e) {
-      print("Error creating game: $e");
+    } catch (e, stackTrace) {
+      print("GameProvider.createPartida: Error creating game: $e");
+      print("GameProvider.createPartida: StackTrace: $stackTrace");
       return false;
     } finally {
       _isLoading = false;
@@ -120,19 +128,40 @@ class GameProvider with ChangeNotifier {
   Future<bool> startPartida() async {
     if (_currentPartida == null) return false;
     
+    print('GameProvider.startPartida: Starting for partida ${_currentPartida!.id}');
     _isLoading = true;
     notifyListeners();
 
     try {
       // Try to start in DB
+      print('GameProvider.startPartida: Calling PostgresService.startPartida');
       final success = await PostgresService().startPartida(_currentPartida!.id);
+      print('GameProvider.startPartida: PostgresService returned success=$success');
+      
       if (success) {
+        // Force update local state immediately so UI reacts
+        print('GameProvider.startPartida: Fetching updated partida from DB');
+        final updated = await PostgresService().getPartidaById(_currentPartida!.id);
+        print('GameProvider.startPartida: getPartidaById returned: ${updated != null ? "partida with estado=${updated.estado}" : "null"}');
+        
+        if (updated != null) {
+            _currentPartida = updated;
+            print('GameProvider.startPartida: Updated local _currentPartida to estado=${_currentPartida!.estado}');
+        } else {
+            print('GameProvider.startPartida: WARNING - getPartidaById returned null!');
+        }
+        
+        print('GameProvider.startPartida: Initializing local game');
         _initializeLocalGame();
+        print('GameProvider.startPartida: Calling notifyListeners');
+        notifyListeners();
+        print('GameProvider.startPartida: Success, returning true');
         return true;
       }
+      print('GameProvider.startPartida: DB start failed, returning false');
       return false;
     } catch (e) {
-      print("Error starting game: $e");
+      print("GameProvider.startPartida: Error starting game: $e");
       return false;
     } finally {
       _isLoading = false;
@@ -141,22 +170,36 @@ class GameProvider with ChangeNotifier {
   }
 
   void _initializeLocalGame() {
-        // Initialize game logic locally
-        _baraja = GameLogic.generarBaraja();
-        _cartasDescartadas = [];
-        
-        // Deal cards (Mock logic for now, should be synchronized)
-        _montonesDescarte = [
-           [_baraja[48]],
-           [_baraja[49]],
-           [_baraja[50]],
-           [_baraja[51]],
-        ];
-        
-        _mano = _baraja.sublist(0, 5);
-        _mazoRestante = _baraja.sublist(5, 24); 
-        
-        notifyListeners();
+        print('_initializeLocalGame: Starting initialization');
+        try {
+          // Initialize game logic locally
+          print('_initializeLocalGame: Generating baraja');
+          _baraja = GameLogic.generarBaraja();
+          print('_initializeLocalGame: Baraja generated, ${_baraja.length} cards');
+          
+          _cartasDescartadas = [];
+          
+          // Deal cards (Mock logic for now, should be synchronized)
+          print('_initializeLocalGame: Setting up discard piles');
+          _montonesDescarte = [
+             [_baraja[48]],
+             [_baraja[49]],
+             [_baraja[50]],
+             [_baraja[51]],
+          ];
+          
+          print('_initializeLocalGame: Dealing initial hand');
+          _mano = _baraja.sublist(0, 5);
+          _mazoRestante = _baraja.sublist(5, 24); 
+          
+          print('_initializeLocalGame: Calling notifyListeners');
+          notifyListeners();
+          print('_initializeLocalGame: Complete');
+        } catch (e, stackTrace) {
+          print('_initializeLocalGame: ERROR - $e');
+          print('_initializeLocalGame: StackTrace - $stackTrace');
+          rethrow;
+        }
   }
 
   Future<void> checkGameStatus() async {

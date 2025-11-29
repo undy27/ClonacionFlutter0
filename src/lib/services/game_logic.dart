@@ -48,7 +48,12 @@ class GameLogic {
 
     // 46 additional random pairs with restrictions
     List<List<int>> paresExtra = [];
-    while (paresExtra.length < 46) {
+    int attempts = 0;
+    int maxAttempts = 10000; // Safety limit
+    
+    print('GameLogic: Generating 46 extra pairs with unique products');
+    while (paresExtra.length < 46 && attempts < maxAttempts) {
+        attempts++;
         int i = random.nextInt(11);
         int j = random.nextInt(11);
         
@@ -65,8 +70,27 @@ class GameLogic {
         bool productExists = paresExtra.any((p) => (p[0] * p[1]) == prod);
         if (!productExists) {
             paresExtra.add([i, j]);
+            if (paresExtra.length % 10 == 0) {
+              print('GameLogic: Generated ${paresExtra.length}/46 extra pairs (attempts: $attempts)');
+            }
         }
     }
+    
+    if (paresExtra.length < 46) {
+      print('GameLogic: WARNING - Could only generate ${paresExtra.length} extra pairs after $attempts attempts');
+      print('GameLogic: Relaxing constraint - filling remaining slots with any valid pairs');
+      // Fill remaining with any valid pair to avoid blocking
+      while (paresExtra.length < 46) {
+        int i = random.nextInt(11);
+        int j = random.nextInt(11);
+        if (i == 10 && j == 10) continue;
+        if (i == 0 && j % 2 != 0) continue;
+        if (j == 0 && i % 2 != 0) continue;
+        paresExtra.add([i, j]);
+      }
+    }
+    
+    print('GameLogic: Extra pairs generated successfully');
 
     List<List<int>> todosParesSuperiores = [...paresSuperiores, ...paresExtra];
     // Should be 156 pairs.

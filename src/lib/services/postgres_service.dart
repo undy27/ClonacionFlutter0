@@ -309,23 +309,30 @@ class PostgresService {
 
   /// Obtiene una partida por su ID
   Future<Partida?> getPartidaById(String id) async {
+    print('PostgresService.getPartidaById: Fetching partida $id');
     try {
       final conn = await _getConnection();
+      print('PostgresService.getPartidaById: Connection obtained');
       final result = await conn.query(
         'SELECT * FROM partidas WHERE id = @id LIMIT 1',
         substitutionValues: {'id': id},
         allowReuse: false,
       );
       
-      if (result.isEmpty) return null;
+      if (result.isEmpty) {
+        print('PostgresService.getPartidaById: No partida found with id $id');
+        return null;
+      }
       
       var map = result.first.toColumnMap();
+      print('PostgresService.getPartidaById: Found partida with estado=${map['estado']}');
       var jugadores = await _getJugadoresPartida(conn, map['id']);
       map['jugadores'] = jugadores;
+      print('PostgresService.getPartidaById: Returning partida with ${jugadores.length} jugadores');
       
       return Partida.fromJson(map);
     } catch (e) {
-      print('Error al obtener partida: $e');
+      print('PostgresService.getPartidaById: Error: $e');
       return null;
     }
   }
@@ -339,6 +346,7 @@ class PostgresService {
     required int ratingMin,
     required int ratingMax,
   }) async {
+    print('PostgresService: Creating game $id for user $creadorId');
     PostgreSQLConnection? conn;
     try {
       conn = PostgreSQLConnection(
@@ -350,6 +358,7 @@ class PostgresService {
         useSSL: true,
       );
       await conn.open();
+      print('PostgresService: Connection opened for createPartida');
 
       final result = await conn.query(
         '''
@@ -374,29 +383,83 @@ class PostgresService {
         allowReuse: false,
       );
       
-      if (result.isEmpty) return null;
+      if (result.isEmpty) {
+        print('PostgresService: Failed to insert partida');
+        return null;
+      }
+      print('PostgresService: Partida inserted');
 
       await conn.query(
         'INSERT INTO partidas_jugadores (partida_id, usuario_id) VALUES (@pid, @uid)',
         substitutionValues: {'pid': id, 'uid': creadorId},
         allowReuse: false,
       );
+      print('PostgresService: Creator added to partidas_jugadores');
       
-      // Get creator alias
-      final creatorRes = await conn.query(
-        'SELECT alias FROM usuarios WHERE id = @uid', 
-        substitutionValues: {'uid': creadorId},
-        allowReuse: false
-      );
-      String creatorAlias = creatorRes.isNotEmpty ? creatorRes.first[0] as String : 'Unknown';
+      // Get creator alias - use safe fallback
+      String creatorAlias = 'Unknown';
+      try {
+        final creatorRes = await conn.query(
+          'SELECT alias FROM usuarios WHERE id = @uid', 
+          substitutionValues: {'uid': creadorId},
+          allowReuse: false
+        );
+        if (creatorRes.isNotEmpty && creatorRes.first[0] != null) {
+          creatorAlias = creatorRes.first[0].toString();
+        }
+      } catch (e) {
+        print('PostgresService: Warning - could not fetch creator alias: $e');
+        // Continue anyway - alias is not critical
+      }
 
       var map = result.first.toColumnMap();
       map['jugadores'] = [{'id': creadorId, 'alias': creatorAlias}];
       
+      print('PostgresService: Game created successfully with alias: $creatorAlias');
       return Partida.fromJson(map);
     } catch (e) {
-      print('Error al crear partida: $e');
+      print('PostgresService: Error creating partida: $e');
+      print('PostgresService: Stack trace: ${StackTrace.current}');
       return null;
+    } finally {
+      await conn?.close();
+    }
+  }
+
+  // ...
+
+  /// Marca una partida como iniciada
+  Future<bool> startPartida(String partidaId) async {
+    print('PostgresService: Attempting to start game $partidaId');
+    PostgreSQLConnection? conn;
+    try {
+      // Use dedicated connection to avoid blocking
+      conn = PostgreSQLConnection(
+        SupabaseConfig.host,
+        SupabaseConfig.port,
+        SupabaseConfig.database,
+        username: SupabaseConfig.username,
+        password: SupabaseConfig.password,
+        useSSL: true,
+      );
+      await conn.open();
+      print('PostgresService: Connection opened for startPartida');
+      
+      final result = await conn.query(
+        '''
+          UPDATE partidas 
+          SET estado = 'en_curso', inicio_partida = NOW() 
+          WHERE id = @partidaId AND estado = 'esperando'
+        ''',
+        substitutionValues: {'partidaId': partidaId},
+        allowReuse: false,
+      );
+      print('PostgresService: Update executed. Affected rows: ${result.affectedRowCount}');
+      return true;
+    } catch (e) {
+      print('PostgresService: Error starting partida: $e');
+      print('PostgresService: Stack trace: ${StackTrace.current}');
+      return false;
     } finally {
       await conn?.close();
     }
@@ -504,29 +567,7 @@ class PostgresService {
     }
   }
 
-  /// Marca una partida como iniciada
-  Future<bool> startPartida(String partidaId) async {
-    try {
-      final conn = await _getConnection();
-      final result = await conn.query(
-        '''
-          UPDATE partidas 
-          SET estado = 'en_curso', inicio_partida = NOW() 
-          WHERE id = @partidaId AND estado = 'esperando'
-        ''',
-        substitutionValues: {'partidaId': partidaId},
-        allowReuse: false,
-      );
-      // If affected rows > 0, we started it. If 0, it was already started or didn't exist.
-      // But for the provider logic, we just want to know if it's done.
-      // Actually, checking affected rows would be better to know if *we* started it, 
-      // but returning true is fine as long as no error occurred.
-      return true;
-    } catch (e) {
-      print('Error al iniciar partida: $e');
-      return false;
-    }
-  }
+
 
   /// Marca una partida como finalizada
   Future<bool> finalizarPartida(String partidaId, String ganadorId) async {

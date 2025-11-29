@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -17,7 +18,10 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: () {
+        SystemSound.play(SystemSoundType.click);
+        onPressed();
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         foregroundColor: textColor,

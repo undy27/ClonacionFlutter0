@@ -181,14 +181,20 @@ class _CreateGameDialogState extends State<CreateGameDialog> {
                       child: CustomButton(
                         text: "CREAR",
                         onPressed: () {
+                          print('CreateGameDialog: CREAR button pressed');
                           if (_formKey.currentState!.validate()) {
+                            print('CreateGameDialog: Form validated, calling onCreate (not awaiting)');
+                            // Close dialog immediately, let onCreate handle async work
+                            Navigator.pop(context);
+                            print('CreateGameDialog: Dialog closed, calling onCreate');
                             widget.onCreate(
                               _nombreController.text,
                               _numJugadores,
                               _ratingRange.start.round(),
                               _ratingRange.end.round(),
                             );
-                            Navigator.pop(context);
+                          } else {
+                            print('CreateGameDialog: Form validation failed');
                           }
                         },
                       ),

@@ -94,23 +94,35 @@ class _GameListScreenState extends State<GameListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          // Capture the screen context before showing dialog
+          final screenContext = context;
+          
           showDialog(
             context: context,
             builder: (context) => CreateGameDialog(
               onCreate: (nombre, jugadores, minRating, maxRating) async {
-                final success = await Provider.of<GameProvider>(context, listen: false)
+                print('GameListScreen: onCreate called');
+                final success = await Provider.of<GameProvider>(screenContext, listen: false)
                     .createPartida(nombre, jugadores, minRating, maxRating);
                 
-                if (success && context.mounted) {
-                  Navigator.pushNamed(context, '/waiting_room');
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                print('GameListScreen: createPartida returned success=$success, screenContext.mounted=${screenContext.mounted}');
+                
+                if (success && screenContext.mounted) {
+                  print('GameListScreen: Navigating to /waiting_room');
+                  Navigator.of(screenContext).pushNamed('/waiting_room');
+                  print('GameListScreen: Navigation called');
+                } else if (screenContext.mounted) {
+                  print('GameListScreen: Showing error snackbar');
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(
                       content: Text("Error al crear la partida"),
                       backgroundColor: AppTheme.error,
                     ),
                   );
+                } else {
+                  print('GameListScreen: ERROR - screenContext is not mounted!');
                 }
+                print('GameListScreen: onCreate finished');
               },
             ),
           );

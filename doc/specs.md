@@ -80,6 +80,8 @@ Antes del inicio de cada partida, el sistema generará una nueva baraja de juego
 ## Stack tecnológico
     * Plataformas cliente: iOS y Android
     * Frontend: Flutter
+    * Base de datos: Supabase
+        - DATABASE_URL=postgresql://postgres.dwrzqqeabgrrornmyyum:ClonBD1111A4@aws-1-eu-west-1.pooler.supabase.com:6543/postgres
 
 ## Logging
     * Todas las operaciones en el servidor se registrarán en un fichero de log, indicando timestamp, jugador y acción
