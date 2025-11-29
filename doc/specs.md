@@ -196,6 +196,7 @@ Como mínimo, se definirán las siguientes clases:
     * Password
     * Jugar sin registrarse
         Con esta opción, el usuario podrá jugar una partida simplemente introduciendo un nombre de usuario (que se mostrará a los otros jugadores durante el juego), sin contraseña. No tendrá rating Elo ni estadísticas de partidas ganadas/perdidas. Tampoco aparecerá en las tablas de ranking ni récords de tiempo.
+        El usuario temporal generado se eliminará al finalizar la partida
     * Iniciar sesión
         Con esta opción, el usuario podrá iniciar sesión con su nombre de usuario y contraseña
     * Registro
@@ -209,39 +210,33 @@ Como mínimo, se definirán las siguientes clases:
             - Nombre de la partida
             - Número de jugadores anotados / Número de jugadores objetivo
             - Rating medio de los jugadores unidos hasta el momento
-        * Aspecto visual de la tabla de partidas creadas:
-            - Diseño responsive adaptado a móviles y escritorio
-            - Modo oscuro según preferencias del sistema
-            - Filas alternadas con colores diferentes
-            - Efecto hover en las filas
-            - Bordes redondeados y sombras
-            - Columnas optimizadas para diferentes tamaños de pantalla
-            - Actualización automática cada 3 segundos 
+        * Actualización automática cada 3 segundos
         * Permite crear una nueva partida. El usuario deberá indicar el número de jugadores objetivo, el intervalo de rating admitido (entre 0 y 3000, por defecto) y el nombre de la partida
         * Número de jugadores objetivo=Número de jugadores anotados
     * Ranking global
-        Se mostrará en una tabla:
-            - Nombre del jugador
-            - Posición en el ranking
-                La posición en el ranking será en base al rating Elo, de mayor a menor, y, en caso de empate, por el número de victorias
-            - Rating Elo
-            - Partidas ganadas y perdidas
-        
-    * Récords de tiempo
-        * Se muestran los récords de tiempo, desglosados en partidas de 2, 3 y 4 jugadores
-        * Presentación visual:
-            - Tablas independientes para cada categoría (2j, 3j, 4j)
-            - Encabezado integrado en la tabla: primera fila con colspan={4} mostrando "2 Jugadores", "3 Jugadores" o "4 Jugadores"
-            - Fondo destacado en encabezado: azul claro (#e3f2fd) en modo claro, gris oscuro (#333333) en modo oscuro
-            - Texto del encabezado: centrado, tamaño 18px (móvil) / 24px (desktop), color azul (#1976d2)
-            - Columnas: Posición, Jugador (con avatar circular), Tiempo (formato mm:ss), Wins
-            - Diseño responsive adaptado a móviles y escritorio
-            - Modo oscuro según preferencias del sistema
+        - Se incluyen 2 pestañas:
+            - Puntuaciones
+                - Las posiciones de los jugadores en la tabla de puntuaciones y en la tabla de récords de tiempo serán en base al rating Elo, de mayor a menor, y, en caso de empate, por el número de victorias
+                - En cada fila de la tabla se incluye:
+                    - Medallas (oro, plata, bronce o ninguna)
+                    - Avatar
+                    - Nombre
+                    - Victorias / Derrotas
+                    - Rating Elo
+            - Récords de tiempo
+                - Desglosado por número de jugadores (2j, 3j, 4j)
+                - En cada fila de la tabla se incluye:
+                    - Medallas (oro, plata, bronce o ninguna)
+                    - Avatar
+                    - Nombre
+                    - Tiempo
     * Opciones
         - Estilo de carta
             Se mostrará un ejemplo de carta para cada tema, el usuario seleccionará uno de ellos
             - Tema Clásico
             - Tema Moderno
+        - Modo claro/oscuro
+            Sólo afecta a los menús y interfaces, no a las cartas
         - Sonidos
             No implementar todavía
         - Modificar contraseña
@@ -260,16 +255,22 @@ Como mínimo, se definirán las siguientes clases:
 ## Juego
 
     * El aspecto visual del tablero de juego será este:
-        - Fila superior (1)
-            * Muestra la información de los jugadores en la partida, en disposición horizontal
-                - Nombre del jugador
-                - Cartas que ha descartado en la partida
-                - Número de penalizaciones por descarte incorrecto
-            * Muestra un botón de Abandonar
-        - Fila 2: muestra los 2 primeros montones de descartes
-        - Fila 3: muestra los 2 últimos montones de descartes
-        - Fila 4: muestra las 3 primeras cartas de la mano del jugador
-        - Fila 5: muestra las 2 últimas cartas de la mano del jugador y, separado un poco de la última carta de la mano, el mazo restante del jugador (mostrando el reverso de la carta superior)
+        -  Zona superior:
+            - Montones de descartes
+                - Se disponen en 2 filas, una con los 2 primeros montones y otra con los 2 últimos
+            - Información de los jugadores, a la derecha de los montones de descartes, dispuestos verticalmente
+                - La altura de la información de los 4 jugadores coincidirá con la altura de los montones de descartes
+                - Para cada jugador se mostrará:
+                    - Avatar
+                    - Cartas restantes
+                    - Número de penalizaciones por descarte incorrecto
+                - La información de los jugadores se mostrará ordenada según su número de cartas restantes, de menor a mayor
+                - Los cambios en el orden de los jugadores se visualizarán mediante una animación de desplazamiento. Se usará para ello AnimatedList o AnimatedBuilder
+        - Zona inferior:
+            - Mano del jugador
+                - Se mostrarán las 3 primeras cartas de la mano del jugador en una fila
+                - Se mostrarán las 2 últimas cartas de la mano del jugador en una fila debajo de las 3 primeras
+                - Se mostrará el mazo restante del jugador (mostrando el reverso de la carta superior) a la derecha de las 2 últimas cartas de la mano del jugador        
 
     * El tamaño de las cartas será el máximo posible que permita la disposición señalada anteriormente y el tamaño de la pantalla, dejando márgenes mínimos por arriba, abajo, izquierda y derecha
     
@@ -311,12 +312,6 @@ Como mínimo, se definirán las siguientes clases:
             - Algún otro jugador gana la partida
             - Derrota por máximo de penalizaciones: si el jugador hace más de 3 descartes incorrectos, automáticamente pierde la partida. El jugador eliminado ve un overlay permanente con el mensaje "Has sido eliminado" que le permite seguir visualizando la partida pero sin poder jugar. Puede hacer clic en cualquier lugar del overlay para volver al menú principal. Si la partida finaliza, este overlay se reemplaza por el overlay de finalización de partida. Detalles del overlay de eliminación:
                 * Cuándo aparece: Cuando el jugador acumula 3 descartes incorrectos
-                * Estilo visual:
-                    - Fondo semi-transparente rojo oscuro (rgba(139, 0, 0, 0.95))
-                    - Efecto de desenfoque (backdrop-filter: blur(5px))
-                    - z-index: 10001 (superior a otros elementos del juego)
-                    - Bordes redondeados (border-radius: 20px)
-                    - Sombra pronunciada para destacar del fondo
                 * Contenido:
                     - Título principal: "Has sido eliminado" (texto blanco, tamaño grande)
                     - Subtítulo: "Haz clic en cualquier lugar para volver al menú" (texto gris claro, tamaño menor)
@@ -338,18 +333,9 @@ Como mínimo, se definirán las siguientes clases:
             * Cuándo aparece: Cuando la partida termina (un jugador gana o todos excepto uno son eliminados)
             * Tipos de overlay:
                 - Victoria (jugador ganador):
-                    - Fondo semi-transparente verde (rgba(76, 175, 80, 0.95))
                     - Título: "¡Has ganado la partida!"
                 - Derrota (jugadores no ganadores):
-                    - Fondo semi-transparente naranja (rgba(255, 152, 0, 0.95))
                     - Título: "El jugador [X] ha ganado la partida", siendo [X] el nombre de usuario del jugador que ha ganado
-            * Estilo visual común:
-                - Efecto de desenfoque (backdrop-filter: blur(5px))
-                - z-index: 10002 (superior al overlay de eliminación)
-                - Bordes redondeados (border-radius: 20px)
-                - Sombra pronunciada para destacar del fondo
-            * Contenido común:
-                - Subtítulo: "Haz clic en cualquier lugar para volver al menú" (texto gris claro)
             * Comportamiento:
                 - Click en cualquier lugar → vuelve inmediatamente al menú principal
                 - Auto-redirección al menú después de 3 segundos si no hay interacción

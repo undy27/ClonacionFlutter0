@@ -34,7 +34,6 @@ class CartaWidget extends StatelessWidget {
             color: AppTheme.primary,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppTheme.border, width: 2),
-            boxShadow: AppTheme.smallHardShadow,
           ),
           child: Center(
             child: Text(
@@ -60,7 +59,6 @@ class CartaWidget extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppTheme.border, width: 2),
-          boxShadow: AppTheme.smallHardShadow,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -279,13 +277,6 @@ class CartaWidget extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.bold,
           height: 1.0, // Tight height for better centering
-          shadows: [
-            Shadow(
-              offset: const Offset(1, 1),
-              blurRadius: 2,
-              color: Colors.black.withOpacity(0.5),
-            ),
-          ],
         ),
       );
   }
