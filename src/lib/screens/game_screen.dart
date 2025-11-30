@@ -165,6 +165,12 @@ class _GameScreenState extends State<GameScreen> {
     final upperZoneHeight = (cardHeight * 2) + cardSpacing;
     final lowerZoneHeight = (cardHeight * 2) + cardSpacing;
 
+    // Calculate max chars in board for variable font size logic
+    int maxCharsInBoard = 3; // Minimum default
+    if (!gameProvider.variableFontSize) {
+      maxCharsInBoard = _calculateMaxCharsInBoard(myHand, discardPiles);
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
@@ -194,24 +200,24 @@ class _GameScreenState extends State<GameScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0]),
+                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                                 SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1]),
+                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                               ],
                             ),
                           ),
                           
                           SizedBox(height: cardSpacing),
                           
-                          // Row 2: Piles 3 & 4
+                          // Row 2: Piles 2 and 3
                           SizedBox(
                             height: cardHeight,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2]),
+                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                                 SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3]),
+                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                               ],
                             ),
                           ),
@@ -253,11 +259,11 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(0, myHand, cardWidth, cardHeight),
+                          _buildHandCard(0, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(1, myHand, cardWidth, cardHeight),
+                          _buildHandCard(1, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(2, myHand, cardWidth, cardHeight),
+                          _buildHandCard(2, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                         ],
                       ),
                      ),
@@ -268,9 +274,9 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(3, myHand, cardWidth, cardHeight),
+                          _buildHandCard(3, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(4, myHand, cardWidth, cardHeight),
+                          _buildHandCard(4, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
                           SizedBox(width: cardSpacingHorizontal),
                           _buildDeck(
                             isOnlineMode ? myDeckSize : gameProvider.mazoRestante.length,
@@ -290,8 +296,28 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+  
+  int _calculateMaxCharsInBoard(List<Carta> hand, List<List<Carta>> piles) {
+    int maxChars = 3;
+    
+    void checkCarta(Carta c) {
+      for (var m in c.multiplicaciones) {
+        int len = "${m[0]}×${m[1]}".length;
+        if (len > maxChars) maxChars = len;
+      }
+      int divLen = "${c.division[0]}:${c.division[1]}".length;
+      if (divLen > maxChars) maxChars = divLen;
+    }
+    
+    for (var c in hand) checkCarta(c);
+    for (var pile in piles) {
+      if (pile.isNotEmpty) checkCarta(pile.last);
+    }
+    
+    return maxChars;
+  }
 
-  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails}) {
+  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails, int maxChars = 5, bool useVariableFont = true}) {
     final pile = allPiles[index];
     
     if (pile.isEmpty) {
@@ -554,7 +580,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildHandCard(int index, List<Carta> hand, double w, double h) {
+  Widget _buildHandCard(int index, List<Carta> hand, double w, double h, {int maxChars = 5, bool useVariableFont = true}) {
     if (index >= hand.length) {
       // Empty slot - invisible
       return SizedBox(
@@ -572,38 +598,43 @@ class _GameScreenState extends State<GameScreen> {
     
     return Draggable(
       data: carta,
-      feedback: Material(
-        color: Colors.transparent,
-        child: Opacity(
-          opacity: 0.8,
+      feedback: Transform.rotate(
+        angle: angleRadians,
+        child: Material(
+          color: Colors.transparent,
           child: CartaWidget(
             carta: carta,
             width: w * 1.1,
             height: h * 1.1,
+            maxCharsInBoard: maxChars,
+            useVariableFont: useVariableFont,
           ),
         ),
       ),
-      childWhenDragging: Container(
-        width: w,
-        height: h,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.primary.withOpacity(0.5), width: 3),
-          borderRadius: BorderRadius.circular(10),
-          color: AppTheme.primary.withOpacity(0.1),
-        ),
-        child: const Center(
-          child: Icon(Icons.touch_app, color: AppTheme.primary, size: 32),
-        ),
-      ),
-      child: FadeInUp(
-        duration: Duration(milliseconds: 300 + (index * 100)),
+      childWhenDragging: Opacity(
+        opacity: 0.5,
         child: Transform.rotate(
           angle: angleRadians,
           child: CartaWidget(
             carta: carta,
             width: w,
             height: h,
+            maxCharsInBoard: maxChars,
+            useVariableFont: useVariableFont,
           ),
+        ),
+      ),
+      child: Transform.rotate(
+        angle: angleRadians,
+        child: CartaWidget(
+          carta: carta,
+          width: w,
+          height: h,
+          onTap: () {
+            // Optional: Select logic
+          },
+          maxCharsInBoard: maxChars,
+          useVariableFont: useVariableFont,
         ),
       ),
     );

@@ -61,6 +61,7 @@ class OnlineGameProvider with ChangeNotifier {
       _currentRoomId = state.roomId;
       
       debugPrint('[OnlineGameProvider] Game state updated: ${state.players.length} players, ${_myHand.length} cards in hand');
+      debugPrint('[OnlineGameProvider] Players list: ${_players.map((p) => "${p.alias}(${p.handSize}+${p.personalDeckSize})").toList()}');
       debugPrint('[OnlineGameProvider] Discard piles: ${_discardPiles.map((p) => p.length).toList()}');
       notifyListeners();
     });

@@ -57,6 +57,11 @@ class GameProvider with ChangeNotifier {
   // Store match details for the top card of each discard pile
   final Map<int, MatchDetails> _lastMatchDetails = {};
   
+  // Settings
+  bool _variableFontSize = true;
+  bool _musicEnabled = true;
+  bool _soundEffectsEnabled = true;
+  
   List<Partida> get partidas => _partidas;
   Partida? get currentPartida => _currentPartida;
   List<Carta> get mano => _mano;
@@ -66,10 +71,29 @@ class GameProvider with ChangeNotifier {
   int get initialDeckSize => _initialDeckSize;
   Usuario? get currentUser => _currentUser;
   
+  bool get variableFontSize => _variableFontSize;
+  bool get musicEnabled => _musicEnabled;
+  bool get soundEffectsEnabled => _soundEffectsEnabled;
+  
   MatchDetails? getLastMatchDetails(int montonIndex) => _lastMatchDetails[montonIndex];
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  void toggleVariableFontSize() {
+    _variableFontSize = !_variableFontSize;
+    notifyListeners();
+  }
+
+  void toggleMusic() {
+    _musicEnabled = !_musicEnabled;
+    notifyListeners();
+  }
+
+  void toggleSoundEffects() {
+    _soundEffectsEnabled = !_soundEffectsEnabled;
+    notifyListeners();
+  }
 
   Future<void> loadPartidasDisponibles() async {
     try {

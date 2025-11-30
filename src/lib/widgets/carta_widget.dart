@@ -11,17 +11,23 @@ class CartaWidget extends StatefulWidget {
   final double height;
   final bool isVisible;
   final VoidCallback? onTap;
+  final bool isSelected;
   final MatchDetails? matchDetails;
+  final int maxCharsInBoard;
+  final bool useVariableFont;
 
   const CartaWidget({
     super.key,
     required this.carta,
-    this.tema = 'moderno', // 'clasico' or 'moderno'
+    this.tema = 'moderno',
     required this.width,
     required this.height,
     this.isVisible = true,
     this.onTap,
+    this.isSelected = false,
     this.matchDetails,
+    this.maxCharsInBoard = 5,
+    this.useVariableFont = true,
   });
 
   @override
@@ -136,11 +142,14 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: widget.tema == 'clasico' ? _buildClasico() : 
-                 AnimatedBuilder(
-                   animation: _controller!,
-                   builder: (context, child) => _buildModerno(),
-                 ),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+            child: widget.tema == 'clasico' ? _buildClasico() : 
+                   AnimatedBuilder(
+                     animation: _controller!,
+                     builder: (context, child) => _buildModerno(),
+                   ),
+          ),
         ),
       ),
     );
@@ -237,14 +246,36 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
         double scaleY(double y) => (y / 216.0) * h;
 
         // Cálculo de fuente responsivo basado en el tamaño de la carta
-        double diameter = w * 0.32;
+        // Ajustado a 0.42 para coincidir mejor con el tamaño visual del círculo en el SVG
+        double diameter = w * 0.42;
+        
+        // Para la zona inferior, usamos una referencia más pequeña para mantener la proporción original
+        double bottomReferenceDiameter = w * 0.37;
+        double bottomFontSize = ((bottomReferenceDiameter - 8.0) / 2.0) * 0.9;
+        if (bottomFontSize < 7) bottomFontSize = 7;
         
         // Margen fijo: 4px a cada lado = 8px total
         const double margin = 8.0;
         
-        double uniformFontSize = ((diameter - margin) / 2.0) * 0.9;
+        // Calcular tamaño de fuente para operaciones
+        double operationFontSize;
+        BoxFit operationBoxFit;
         
-        if (uniformFontSize < 7) uniformFontSize = 7;
+        if (widget.useVariableFont) {
+          // Modo Variable (ON): Maximizar espacio disponible
+          operationFontSize = diameter * 0.8;
+          operationBoxFit = BoxFit.contain;
+        } else {
+          // Modo Fijo (OFF): Usar tamaño del peor caso en el tablero
+          // Heurística: LexendMega width ~ 0.6 * fontSize
+          // width = chars * 0.6 * fontSize => fontSize = width / (chars * 0.6)
+          // Usamos un factor un poco más conservador (0.65)
+          double estimatedChars = widget.maxCharsInBoard.toDouble();
+          if (estimatedChars < 3) estimatedChars = 3; // Mínimo 3 chars ("2x2")
+          
+          operationFontSize = (diameter - margin) / (estimatedChars * 0.65);
+          operationBoxFit = BoxFit.scaleDown; // No crecer más allá del tamaño calculado
+        }
 
         return Stack(
           children: [
@@ -265,13 +296,21 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
               width: diameter,
               height: diameter,
               child: Center(
-                child: _buildAnimatedElement(
-                  isMatched: widget.matchDetails?.matchedMults.contains(0) ?? false,
-                  child: _buildOperationText(
-                    "${widget.carta.multiplicaciones[0][0]}×${widget.carta.multiplicaciones[0][1]}",
-                    widget.carta.multiplicaciones[0].contains(10) ? uniformFontSize * 0.8 : uniformFontSize,
-                    Colors.white,
-                    isMatched: widget.matchDetails?.matchedMults.contains(0) ?? false,
+                child: Container(
+                  width: diameter - 8, // 4px margin each side
+                  // Removed fixed height to allow text to expand horizontally until width limit
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: operationBoxFit,
+                    child: _buildAnimatedElement(
+                      isMatched: widget.matchDetails?.matchedMults.contains(0) ?? false,
+                      child: _buildOperationText(
+                        "${widget.carta.multiplicaciones[0][0]}×${widget.carta.multiplicaciones[0][1]}",
+                        operationFontSize,
+                        Colors.white,
+                        isMatched: widget.matchDetails?.matchedMults.contains(0) ?? false,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -284,13 +323,21 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
               width: diameter,
               height: diameter,
               child: Center(
-                child: _buildAnimatedElement(
-                  isMatched: widget.matchDetails?.matchedMults.contains(1) ?? false,
-                  child: _buildOperationText(
-                    "${widget.carta.multiplicaciones[1][0]}×${widget.carta.multiplicaciones[1][1]}",
-                    widget.carta.multiplicaciones[1].contains(10) ? uniformFontSize * 0.8 : uniformFontSize,
-                    Colors.white,
-                    isMatched: widget.matchDetails?.matchedMults.contains(1) ?? false,
+                child: Container(
+                  width: diameter - 8,
+                  // Removed fixed height
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: operationBoxFit,
+                    child: _buildAnimatedElement(
+                      isMatched: widget.matchDetails?.matchedMults.contains(1) ?? false,
+                      child: _buildOperationText(
+                        "${widget.carta.multiplicaciones[1][0]}×${widget.carta.multiplicaciones[1][1]}",
+                        operationFontSize,
+                        Colors.white,
+                        isMatched: widget.matchDetails?.matchedMults.contains(1) ?? false,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -303,13 +350,21 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
               width: diameter,
               height: diameter,
               child: Center(
-                child: _buildAnimatedElement(
-                  isMatched: widget.matchDetails?.matchedMults.contains(2) ?? false,
-                  child: _buildOperationText(
-                    "${widget.carta.multiplicaciones[2][0]}×${widget.carta.multiplicaciones[2][1]}",
-                    widget.carta.multiplicaciones[2].contains(10) ? uniformFontSize * 0.8 : uniformFontSize,
-                    Colors.white,
-                    isMatched: widget.matchDetails?.matchedMults.contains(2) ?? false,
+                child: Container(
+                  width: diameter - 8,
+                  // Removed fixed height
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: operationBoxFit,
+                    child: _buildAnimatedElement(
+                      isMatched: widget.matchDetails?.matchedMults.contains(2) ?? false,
+                      child: _buildOperationText(
+                        "${widget.carta.multiplicaciones[2][0]}×${widget.carta.multiplicaciones[2][1]}",
+                        operationFontSize,
+                        Colors.white,
+                        isMatched: widget.matchDetails?.matchedMults.contains(2) ?? false,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -323,13 +378,21 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
               width: diameter, 
               height: diameter,
               child: Center(
-                child: _buildAnimatedElement(
-                  isMatched: widget.matchDetails?.matchedDiv ?? false,
-                  child: _buildOperationText(
-                    "${widget.carta.division[0]}:${widget.carta.division[1]}",
-                    widget.carta.division[0] >= 10 ? uniformFontSize * 0.85 : uniformFontSize,
-                    Colors.white,
-                    isMatched: widget.matchDetails?.matchedDiv ?? false,
+                child: Container(
+                  width: diameter - 8,
+                  // Removed fixed height
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: operationBoxFit,
+                    child: _buildAnimatedElement(
+                      isMatched: widget.matchDetails?.matchedDiv ?? false,
+                      child: _buildOperationText(
+                        "${widget.carta.division[0]}:${widget.carta.division[1]}",
+                        operationFontSize,
+                        Colors.white,
+                        isMatched: widget.matchDetails?.matchedDiv ?? false,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -347,7 +410,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
                   isMatched: widget.matchDetails?.matchedResults.contains(0) ?? false,
                   child: _buildOperationText(
                     "${widget.carta.resultados[0]}",
-                    uniformFontSize * 1.1,
+                    bottomFontSize * 1.3, // Using bottomFontSize
                     Colors.black,
                     isMatched: widget.matchDetails?.matchedResults.contains(0) ?? false,
                   ),
@@ -366,7 +429,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
                   isMatched: widget.matchDetails?.matchedResults.contains(1) ?? false,
                   child: _buildOperationText(
                     "${widget.carta.resultados[1]}",
-                    uniformFontSize * 1.1,
+                    bottomFontSize * 1.3, // Using bottomFontSize
                     Colors.black,
                     isMatched: widget.matchDetails?.matchedResults.contains(1) ?? false,
                   ),
@@ -384,7 +447,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
                   isMatched: widget.matchDetails?.matchedResults.contains(2) ?? false,
                   child: _buildOperationText(
                     "${widget.carta.resultados[2]}",
-                    uniformFontSize * 1.1,
+                    bottomFontSize * 1.3, // Using bottomFontSize
                     Colors.black,
                     isMatched: widget.matchDetails?.matchedResults.contains(2) ?? false,
                   ),
@@ -423,7 +486,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
           fontSize: fontSize,
           color: finalColor,
           fontWeight: FontWeight.bold,
-          height: 1.0,
+          height: 0.1, // Drastically reduced to force FittedBox to ignore vertical padding
           leadingDistribution: TextLeadingDistribution.even,
           shadows: (isMatched && _shadowBlurAnimation != null && _shadowBlurAnimation!.value > 0.1) ? [
             Shadow(
