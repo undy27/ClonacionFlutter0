@@ -11,6 +11,7 @@
     * Número de montones de descarte: 4
     * Mano inicial de cada jugador: 5 cartas
     * Mazo restante inicial de cada jugador: 19, 11 o 7 cartas (2, 3 o 4 jugadores)
+    * Turnos de juego: no hay turnos de juego, los jugadores pueden descartar cartas en cualquier momento
     * Final de partida y ganador: gana el juego el jugador que se queda sin cartas
 
 ## Desarrollo de la partida

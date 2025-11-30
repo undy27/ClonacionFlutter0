@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/game_provider.dart';
+import '../providers/online_game_provider.dart';
 
 class WaitingRoomScreen extends StatefulWidget {
   const WaitingRoomScreen({super.key});
@@ -13,6 +14,7 @@ class WaitingRoomScreen extends StatefulWidget {
 
 class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
   Timer? _timer;
+  bool _isConnecting = false;
 
   @override
   void initState() {
@@ -30,11 +32,87 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
       final provider = Provider.of<GameProvider>(context, listen: false);
       await provider.checkGameStatus();
       
-      if (provider.currentPartida?.estado == 'en_curso' && mounted) {
+      // Cuando la partida está en curso, conectar al servidor
+      if (provider.currentPartida?.estado == 'en_curso' && mounted && !_isConnecting) {
         timer.cancel();
-        Navigator.pushReplacementNamed(context, '/game');
+        _isConnecting = true;
+        await _connectToServerAndJoinRoom();
       }
     });
+  }
+
+  Future<void> _connectToServerAndJoinRoom() async {
+    if (!mounted) return;
+    
+    final gameProvider = Provider.of<GameProvider>(context, listen: false);
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    final partida = gameProvider.currentPartida;
+    final user = gameProvider.currentUser;
+    
+    if (partida == null || user == null) return;
+
+    try {
+      // Conectar al servidor
+      final connected = await onlineProvider.connectToServer();
+      if (!connected || !mounted) return;
+
+      // Crear la sala si soy creador
+      if (partida.creadorId == user.id) {
+        onlineProvider.createOnlineRoom(
+          partida.id,
+          partida.nombre,
+          partida.numJugadoresObjetivo,
+        );
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
+      // Unirse a la sala
+      onlineProvider.joinRoom(partida.id, user.id, user.alias);
+      
+      // Esperar a que TODOS los jugadores se unan
+      debugPrint('[WaitingRoom] Esperando a que todos se unan al servidor...');
+      int waitAttempts = 0;
+      while (waitAttempts < 20 && mounted) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        // Verificar que hay el número correcto de jugadores en el servidor
+        if (onlineProvider.players.length >= partida.numJugadoresObjetivo) {
+          debugPrint('[WaitingRoom] Todos los jugadores conectados (${onlineProvider.players.length}/${partida.numJugadoresObjetivo})');
+          break;
+        }
+        waitAttempts++;
+      }
+      
+      // Solo el creador inicia el juego
+      if (partida.creadorId == user.id && mounted) {
+        debugPrint('[WaitingRoom] Creador iniciando juego...');
+        await Future.delayed(const Duration(milliseconds: 300)); // Pequeño delay extra
+        onlineProvider.startOnlineGame();
+      }
+      
+      // TODOS esperan a que el servidor inicie el juego (status = 'playing')
+      debugPrint('[WaitingRoom] Esperando a que el servidor inicie el juego...');
+      int attempts = 0;
+      while (attempts < 20 && mounted) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (onlineProvider.gameStatus == 'playing') {
+          debugPrint('[WaitingRoom] Juego iniciado, navegando a GameScreen');
+          break;
+        }
+        attempts++;
+      }
+      
+      // Navegar a la pantalla de juego
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/game');
+      }
+    } catch (e) {
+      debugPrint('[WaitingRoom] Error connecting to server: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al conectar: $e')),
+        );
+      }
+    }
   }
 
   @override

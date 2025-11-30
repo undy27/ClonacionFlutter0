@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: CustomButton(
-                  text: "RANKING GLOBAL",
+                  text: "RANKING",
                   color: AppTheme.secondary,
                   onPressed: () {
                     Navigator.pushNamed(context, '/ranking');

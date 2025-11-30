@@ -14,6 +14,7 @@ import 'providers/auth_provider.dart';
 import 'screens/auth_screen.dart';
 
 import 'providers/theme_provider.dart';
+import 'providers/online_game_provider.dart';
 
 void main() {
   runApp(
@@ -21,9 +22,14 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => OnlineGameProvider()),
         ChangeNotifierProxyProvider<AuthProvider, GameProvider>(
           create: (_) => GameProvider(),
           update: (_, auth, game) => game!..updateUser(auth.currentUser),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, OnlineGameProvider>(
+          create: (_) => OnlineGameProvider(),
+          update: (_, auth, onlineGame) => onlineGame!..setUser(auth.currentUser),
         ),
       ],
       child: const MyApp(),

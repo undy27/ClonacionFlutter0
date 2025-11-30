@@ -1,6 +1,12 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
+import '../providers/online_game_provider.dart';
+import '../models/carta.dart';
+import '../models/partida.dart';
+import '../services/websocket_service.dart'; // Para PlayerInfo
 import '../widgets/carta_widget.dart';
 import '../theme/app_theme.dart';
 import 'package:animate_do/animate_do.dart';
@@ -16,17 +22,107 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  // State for animations
+  Map<int, MatchDetails> _pileAnimations = {};
+  StreamSubscription? _cardPlayedSubscription;
+
   @override
   void initState() {
     super.initState();
-    // Game is started from WaitingRoomScreen, data should be ready
+    
+    // Listen to card played events for animations
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+      if (onlineProvider.isOnline) {
+        _cardPlayedSubscription = onlineProvider.cardPlayedStream.listen((data) {
+          if (!mounted) return;
+          
+          final pileIndex = data['pileIndex'] as int;
+          final matchDetailsMap = data['matchDetails'] as Map<String, dynamic>;
+          final matchDetails = MatchDetails.fromJson(matchDetailsMap);
+          
+          debugPrint('[GameScreen] Animation event received for pile $pileIndex. Has match: ${matchDetails.hasMatch}');
+          
+          setState(() {
+            _pileAnimations[pileIndex] = matchDetails;
+          });
+          
+          // Clear animation after duration (optional, but good for cleanup)
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (mounted) {
+              setState(() {
+                _pileAnimations.remove(pileIndex);
+              });
+            }
+          });
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _cardPlayedSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _handleCardDiscard(Carta carta, int pileIndex) {
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    final isOnlineMode = onlineProvider.currentRoomId != null;
+    
+    if (isOnlineMode) {
+      // En modo online, enviar al servidor
+      final myHand = onlineProvider.myHand;
+      final cardIndex = myHand.indexWhere((c) => 
+        c.multiplicaciones == carta.multiplicaciones &&
+        c.division == carta.division &&
+        c.resultados == carta.resultados
+      );
+      
+      if (cardIndex >= 0) {
+        onlineProvider.playCard(cardIndex, pileIndex);
+      }
+    } else {
+      // En modo offline, usar lógica local
+      final gameProvider = Provider.of<GameProvider>(context, listen: false);
+      bool success = gameProvider.intentarDescarte(carta, pileIndex);
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("¡Descarte inválido!"),
+            backgroundColor: AppTheme.error,
+            duration: Duration(milliseconds: 600),
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final gameProvider = Provider.of<GameProvider>(context);
+    final onlineProvider = Provider.of<OnlineGameProvider>(context);
     final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Detectar modo online según si hay roomId activo
+    final isOnlineMode = onlineProvider.currentRoomId != null;
+    
+    // Obtener datos del provider correcto
+    final List<Carta> myHand = isOnlineMode ? onlineProvider.myHand : gameProvider.mano;
+    final List<List<Carta>> discardPiles = isOnlineMode ? onlineProvider.discardPiles : gameProvider.montonesDescarte;
+    
+    int myDeckSize = 0;
+    if (isOnlineMode) {
+      final myPlayer = onlineProvider.players.firstWhere(
+        (p) => p.id == gameProvider.currentUser?.id, 
+        orElse: () => PlayerInfo(id: '', alias: '', handSize: 0, personalDeckSize: 0, penalties: 0)
+      );
+      myDeckSize = myPlayer.personalDeckSize;
+      debugPrint('[GameScreen] MyPlayer: ${myPlayer.alias}, DeckSize: $myDeckSize, Players: ${onlineProvider.players.length}');
+    }
+
+    debugPrint('[GameScreen] Mode: ${isOnlineMode ? "ONLINE" : "OFFLINE"}, Hand: ${myHand.length}, Piles: ${discardPiles.map((p) => p.length).toList()}');
     
     // Fixed margins - NEVER change with screen size
     // Fixed margins - NEVER change with screen size
@@ -98,20 +194,24 @@ class _GameScreenState extends State<GameScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildDiscardPile(0, gameProvider, cardWidth, cardHeight),
-                                _buildDiscardPile(1, gameProvider, cardWidth, cardHeight),
+                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0]),
+                                SizedBox(width: cardSpacingHorizontal),
+                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1]),
                               ],
                             ),
                           ),
-                          const SizedBox(height: cardSpacing),
-                          // Second row: Piles 2 and 3
+                          
+                          SizedBox(height: cardSpacing),
+                          
+                          // Row 2: Piles 3 & 4
                           SizedBox(
                             height: cardHeight,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildDiscardPile(2, gameProvider, cardWidth, cardHeight),
-                                _buildDiscardPile(3, gameProvider, cardWidth, cardHeight),
+                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2]),
+                                SizedBox(width: cardSpacingHorizontal),
+                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3]),
                               ],
                             ),
                           ),
@@ -153,14 +253,14 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(0, gameProvider, cardWidth, cardHeight),
+                          _buildHandCard(0, myHand, cardWidth, cardHeight),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(1, gameProvider, cardWidth, cardHeight),
+                          _buildHandCard(1, myHand, cardWidth, cardHeight),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(2, gameProvider, cardWidth, cardHeight),
+                          _buildHandCard(2, myHand, cardWidth, cardHeight),
                         ],
                       ),
-                    ),
+                     ),
                     const SizedBox(height: cardSpacing),
                     // Row 2: Last 2 cards + deck
                     SizedBox(
@@ -168,11 +268,16 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(3, gameProvider, cardWidth, cardHeight),
+                          _buildHandCard(3, myHand, cardWidth, cardHeight),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(4, gameProvider, cardWidth, cardHeight),
+                          _buildHandCard(4, myHand, cardWidth, cardHeight),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildDeck(gameProvider, cardWidth, cardHeight),
+                          _buildDeck(
+                            isOnlineMode ? myDeckSize : gameProvider.mazoRestante.length,
+                            isOnlineMode ? 24 : gameProvider.initialDeckSize,
+                            cardWidth, 
+                            cardHeight
+                          ),
                         ],
                       ),
                     ),
@@ -186,8 +291,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildDiscardPile(int index, GameProvider provider, double w, double h) {
-    final pile = provider.montonesDescarte[index];
+  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails}) {
+    final pile = allPiles[index];
     
     if (pile.isEmpty) {
       // Empty pile - show placeholder
@@ -265,16 +370,7 @@ class _GameScreenState extends State<GameScreen> {
           onWillAcceptWithDetails: (data) => true,
           onAcceptWithDetails: (data) {
             final carta = data.data as Carta;
-            bool success = provider.intentarDescarte(carta, index);
-            if (!success) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("¡Descarte inválido!"),
-                  backgroundColor: AppTheme.error,
-                  duration: Duration(milliseconds: 600),
-                ),
-              );
-            }
+            _handleCardDiscard(carta, index);
           },
           builder: (context, candidateData, rejectedData) {
             final topCard = pile.last;
@@ -289,7 +385,7 @@ class _GameScreenState extends State<GameScreen> {
                 carta: topCard,
                 width: w,
                 height: h,
-                matchDetails: provider.getLastMatchDetails(index),
+                matchDetails: matchDetails, // Pass match details for animation
               ),
             );
           },
@@ -303,15 +399,36 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildPlayersInfo(GameProvider provider) {
-    // Get all players from current partida
-    final partida = provider.currentPartida;
-    if (partida == null || partida.jugadores.isEmpty) {
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    final isOnline = onlineProvider.isOnline;
+
+    List<JugadorInfo> players = [];
+
+    if (isOnline) {
+      // Map online players to JugadorInfo
+      players = onlineProvider.players.map((p) {
+        // Calculate total remaining cards (hand + personal deck)
+        final totalCards = p.handSize + p.personalDeckSize;
+        
+        return JugadorInfo(
+          id: p.id,
+          alias: p.alias,
+          avatar: null, // Online players might not have avatars yet
+          cartasRestantes: totalCards,
+          penalizaciones: p.penalties,
+        );
+      }).toList();
+    } else {
+      // Offline mode
+      final partida = provider.currentPartida;
+      if (partida != null) {
+        players = partida.jugadores;
+      }
+    }
+
+    if (players.isEmpty) {
       return const Center(child: Text('No hay información de jugadores'));
     }
-    
-    // TODO: Sort players by remaining cards (ascending)
-    // For now, just display them
-    final players = partida.jugadores;
     
     // Calculate card height to determine player info box height
     final size = MediaQuery.of(context).size;
@@ -437,8 +554,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildHandCard(int index, GameProvider provider, double w, double h) {
-    if (index >= provider.mano.length) {
+  Widget _buildHandCard(int index, List<Carta> hand, double w, double h) {
+    if (index >= hand.length) {
       // Empty slot - invisible
       return SizedBox(
         width: w,
@@ -446,7 +563,7 @@ class _GameScreenState extends State<GameScreen> {
       );
     }
     
-    final carta = provider.mano[index];
+    final carta = hand[index];
     
     // Deterministic random rotation based on card hash so it doesn't jitter on rebuilds
     final random = Random(carta.hashCode);
@@ -492,14 +609,13 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildDeck(GameProvider provider, double w, double h) {
-    if (provider.mazoRestante.isEmpty) {
+  Widget _buildDeck(int count, int initialSize, double w, double h) {
+    if (count == 0) {
       return SizedBox(width: w, height: h);
     }
     
-    final count = provider.mazoRestante.length;
     // Use stored initial size, fallback to count if 0 (e.g. hot reload without re-init)
-    final initial = provider.initialDeckSize > 0 ? provider.initialDeckSize : count; 
+    final initial = initialSize > 0 ? initialSize : count; 
     final percentage = count / initial;
     
     int cardsBelow = 0;

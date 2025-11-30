@@ -77,9 +77,14 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
   void didUpdateWidget(CartaWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _initAnimations(); // Ensure initialized
-    if (widget.matchDetails != oldWidget.matchDetails && widget.matchDetails != null && widget.matchDetails!.hasMatch) {
-      _controller!.reset();
-      _controller!.forward();
+    
+    if (widget.matchDetails != oldWidget.matchDetails) {
+      debugPrint('[CartaWidget] MatchDetails updated: ${widget.matchDetails?.hasMatch}');
+      if (widget.matchDetails != null && widget.matchDetails!.hasMatch) {
+        debugPrint('[CartaWidget] Starting animation!');
+        _controller!.reset();
+        _controller!.forward();
+      }
     }
   }
 

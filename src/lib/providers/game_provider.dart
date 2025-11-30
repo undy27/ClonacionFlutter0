@@ -5,6 +5,8 @@ import '../models/carta.dart';
 import '../models/usuario.dart';
 import '../services/postgres_service.dart';
 
+import 'package:flutter/foundation.dart';
+
 class MatchDetails {
   final List<int> matchedMults; // Indices 0, 1, 2
   final bool matchedDiv;
@@ -17,6 +19,26 @@ class MatchDetails {
   });
   
   bool get hasMatch => matchedMults.isNotEmpty || matchedDiv || matchedResults.isNotEmpty;
+
+  factory MatchDetails.fromJson(Map<String, dynamic> json) {
+    return MatchDetails(
+      matchedMults: List<int>.from(json['matchedMults'] ?? []),
+      matchedDiv: json['matchedDiv'] ?? false,
+      matchedResults: List<int>.from(json['matchedResults'] ?? []),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MatchDetails &&
+        listEquals(matchedMults, other.matchedMults) &&
+        matchedDiv == other.matchedDiv &&
+        listEquals(matchedResults, other.matchedResults);
+  }
+
+  @override
+  int get hashCode => Object.hash(Object.hashAll(matchedMults), matchedDiv, Object.hashAll(matchedResults));
 }
 
 class GameProvider with ChangeNotifier {
