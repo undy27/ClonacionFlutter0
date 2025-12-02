@@ -5,6 +5,7 @@ import 'card.dart';
 class Player {
   final String id; // Usuario ID
   final String alias;
+  final String avatar;
   final WebSocketChannel socket;
   
   List<Card> hand = []; // Cartas visibles (máximo 5)
@@ -15,12 +16,14 @@ class Player {
   Player({
     required this.id,
     required this.alias,
+    required this.avatar,
     required this.socket,
   });
 
   Map<String, dynamic> toJson({bool includeHand = false}) => {
     'id': id,
     'alias': alias,
+    'avatar': avatar,
     'handSize': hand.length,
     'personalDeckSize': personalDeck.length,
     'penalties': penalties,

@@ -7,6 +7,8 @@ import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../services/postgres_service.dart';
 import 'package:flutter/services.dart';
+import '../utils/avatar_helper.dart';
+import '../models/usuario.dart';
 
 class OptionsScreen extends StatelessWidget {
   const OptionsScreen({super.key});
@@ -228,19 +230,106 @@ class OptionsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Avatar Button (disabled for now)
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: Opacity(
-                    opacity: 0.5,
-                    child: CustomButton(
-                      text: "AVATAR",
-                      color: AppTheme.warning,
-                      onPressed: () {
-                        // TODO: Implement avatar selection
-                      },
-                    ),
+                // Avatar Selector
+                _buildCompactOptionContainer(
+                  context,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Text(
+                          "AVATAR",
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 100,
+                        child: Consumer<AuthProvider>(
+                          builder: (context, authProvider, _) {
+                            final currentAvatar = authProvider.currentUser?.avatar ?? 'cientifico';
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: AvatarHelper.availableAvatars.length,
+                              itemBuilder: (context, index) {
+                                final avatarName = AvatarHelper.availableAvatars[index];
+                                final isSelected = currentAvatar == avatarName;
+                                
+                                return GestureDetector(
+                                  onTap: () async {
+                                    SystemSound.play(SystemSoundType.click);
+                                    // Update locally
+                                    if (authProvider.currentUser != null) {
+                                      // Create updated user object
+                                      final updatedUser = Usuario(
+                                        id: authProvider.currentUser!.id,
+                                        alias: authProvider.currentUser!.alias,
+                                        avatar: avatarName, // Update avatar
+                                        rating: authProvider.currentUser!.rating,
+                                        partidasJugadas: authProvider.currentUser!.partidasJugadas,
+                                        victorias: authProvider.currentUser!.victorias,
+                                        derrotas: authProvider.currentUser!.derrotas,
+                                        mejorTiempoVictoria: authProvider.currentUser!.mejorTiempoVictoria,
+                                        mejorTiempoVictoria2j: authProvider.currentUser!.mejorTiempoVictoria2j,
+                                        mejorTiempoVictoria3j: authProvider.currentUser!.mejorTiempoVictoria3j,
+                                        mejorTiempoVictoria4j: authProvider.currentUser!.mejorTiempoVictoria4j,
+                                        temaCartas: authProvider.currentUser!.temaCartas,
+                                        temaInterfaz: authProvider.currentUser!.temaInterfaz,
+                                        isGuest: authProvider.currentUser!.isGuest,
+                                        isDarkMode: authProvider.currentUser!.isDarkMode,
+                                      );
+                                      
+                                      // Update provider
+                                      authProvider.updateUser(updatedUser);
+                                      
+                                      // Update DB
+                                      await PostgresService().updateAvatar(authProvider.currentUser!.id, avatarName);
+                                    }
+                                  },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 12, bottom: 12),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.rectangle,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected ? AppTheme.primary : Colors.transparent,
+                                          width: 3,
+                                        ),
+                                        boxShadow: isSelected ? [
+                                          BoxShadow(
+                                            color: AppTheme.primary.withOpacity(0.4),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          )
+                                        ] : null,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(9), // 12 - 3 (border)
+                                        child: Image.asset(
+                                          AvatarHelper.getAvatarPath(avatarName, 0),
+                                          width: 70,
+                                          height: 70,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) {
+                                            debugPrint('Error loading avatar: $avatarName');
+                                            return Container(
+                                              width: 70,
+                                              height: 70,
+                                              color: Colors.grey[200],
+                                              child: const Icon(Icons.person, color: Colors.grey),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

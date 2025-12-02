@@ -257,7 +257,7 @@ class PostgresService {
   Future<List<Map<String, dynamic>>> _getJugadoresPartida(PostgreSQLConnection conn, String partidaId) async {
     final result = await conn.query(
       '''
-      SELECT DISTINCT u.id, u.alias 
+      SELECT DISTINCT u.id, u.alias, u.avatar
       FROM partidas_jugadores pj
       JOIN usuarios u ON pj.usuario_id = u.id
       WHERE pj.partida_id = @id
@@ -265,7 +265,7 @@ class PostgresService {
       substitutionValues: {'id': partidaId},
       allowReuse: false,
     );
-    return result.map((r) => {'id': r[0], 'alias': r[1]}).toList();
+    return result.map((r) => {'id': r[0], 'alias': r[1], 'avatar': r[2]}).toList();
   }
 
   /// Obtiene todas las partidas en estado "esperando"
@@ -675,6 +675,23 @@ class PostgresService {
     } catch (e) {
       print('Error al obtener récords: $e');
       return [];
+    }
+  }
+  Future<bool> updateAvatar(String userId, String avatar) async {
+    try {
+      final conn = await _getConnection();
+      await conn.query(
+        'UPDATE usuarios SET avatar = @avatar WHERE id = @userId',
+        substitutionValues: {
+          'avatar': avatar,
+          'userId': userId,
+        },
+        allowReuse: false,
+      );
+      return true;
+    } catch (e) {
+      print('Error al actualizar avatar: $e');
+      return false;
     }
   }
 }

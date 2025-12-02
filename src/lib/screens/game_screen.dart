@@ -7,6 +7,7 @@ import '../providers/online_game_provider.dart';
 import '../models/carta.dart';
 import '../models/partida.dart';
 import '../services/websocket_service.dart'; // Para PlayerInfo
+import '../utils/avatar_helper.dart';
 import '../widgets/carta_widget.dart';
 import '../theme/app_theme.dart';
 import 'package:animate_do/animate_do.dart';
@@ -439,7 +440,7 @@ class _GameScreenState extends State<GameScreen> {
         return JugadorInfo(
           id: p.id,
           alias: p.alias,
-          avatar: null, // Online players might not have avatars yet
+          avatar: p.avatar,
           cartasRestantes: totalCards,
           penalizaciones: p.penalties,
         );
@@ -468,18 +469,66 @@ class _GameScreenState extends State<GameScreen> {
     // Each player info box is smaller than half the height of a card
     final playerBoxHeight = cardHeight / 2.5;
     
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: players.map((jugador) => _buildPlayerInfoItem(jugador, provider, playerBoxHeight)).toList(),
+    // Sort players by remaining cards for display order
+    final sortedPlayers = List<JugadorInfo>.from(players);
+    sortedPlayers.sort((a, b) {
+      final compare = a.cartasRestantes.compareTo(b.cartasRestantes);
+      if (compare != 0) return compare;
+      return a.alias.compareTo(b.alias); // Tie-breaker
+    });
+
+    // Calculate total height needed for the stack
+    final itemHeight = playerBoxHeight + 8.0; // Height + vertical margin (4*2)
+    final totalStackHeight = itemHeight * players.length;
+
+    return SizedBox(
+      height: totalStackHeight,
+      child: Stack(
+        children: players.map((jugador) {
+          final avatarState = _calculateAvatarState(jugador, players);
+          
+          // Find the target index in the sorted list
+          final targetIndex = sortedPlayers.indexWhere((p) => p.id == jugador.id);
+          final topPosition = targetIndex * itemHeight;
+
+          return AnimatedPositioned(
+            key: ValueKey(jugador.id),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOutCubic,
+            top: topPosition,
+            left: 0,
+            right: 0,
+            height: itemHeight,
+            child: _buildPlayerInfoItem(jugador, provider, playerBoxHeight, avatarState),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  Widget _buildPlayerInfoItem(JugadorInfo jugador, GameProvider provider, double availableHeight) {
+  int _calculateAvatarState(JugadorInfo jugador, List<JugadorInfo> allPlayers) {
+    if (allPlayers.length <= 1) return 2; // Solo o esperando
+
+    int myCards = jugador.cartasRestantes;
+    
+    // Check if winning (strictly less cards than everyone else)
+    bool isWinning = allPlayers.every((p) => p.id == jugador.id || p.cartasRestantes > myCards);
+    if (isWinning) return 1;
+
+    // Check if losing (strictly more cards than everyone else)
+    bool isLosing = allPlayers.every((p) => p.id == jugador.id || p.cartasRestantes < myCards);
+    if (isLosing) return 3;
+
+    return 2;
+  }
+
+  Widget _buildPlayerInfoItem(JugadorInfo jugador, GameProvider provider, double availableHeight, int avatarState) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCurrentUser = jugador.id == provider.currentUser?.id;
     
     // Scale elements
     // Reduced avatar size further to fit in box (0.315 -> 0.28)
+    print('GameScreen: Rendering player ${jugador.alias} with avatar: ${jugador.avatar}');
     final avatarRadius = (availableHeight * 0.28).clamp(10.0, 20.0);
     final fontSizeStats = (availableHeight * 0.18).clamp(10.0, 14.0);
     final iconSize = (availableHeight * 0.18).clamp(12.0, 16.0);
@@ -512,7 +561,8 @@ class _GameScreenState extends State<GameScreen> {
           // Avatar
           Container(
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
                   color: isCurrentUser ? AppTheme.primary : Colors.transparent, 
                   width: 2
@@ -525,12 +575,20 @@ class _GameScreenState extends State<GameScreen> {
                 )
               ]
             ),
-            child: CircleAvatar(
-              radius: avatarRadius,
-              backgroundColor: Colors.grey[200],
-              backgroundImage: AssetImage('assets/avatars/${jugador.avatar ?? 'default'}.png'),
-              onBackgroundImageError: (_, __) {},
-              child: (jugador.avatar == null || jugador.avatar == 'default') ? Icon(Icons.person, size: avatarRadius, color: Colors.grey) : null,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6), // 8 - 2
+              child: Image.asset(
+                AvatarHelper.getAvatarPath(jugador.avatar ?? 'default', avatarState),
+                width: avatarRadius * 2,
+                height: avatarRadius * 2,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: avatarRadius * 2,
+                  height: avatarRadius * 2,
+                  color: Colors.grey[200],
+                  child: Icon(Icons.person, size: avatarRadius, color: Colors.grey),
+                ),
+              ),
             ),
           ),
           

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/usuario.dart';
 import '../services/postgres_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/avatar_helper.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
@@ -347,15 +348,28 @@ class _RankingScreenState extends State<RankingScreen> with SingleTickerProvider
                   ),
           ),
           const SizedBox(width: 12),
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: AppTheme.primary,
-            child: Text(
-              usuario.alias.isNotEmpty ? usuario.alias[0].toUpperCase() : '?',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[200],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                AvatarHelper.getAvatarPath(usuario.avatar, 0),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Center(
+                  child: Text(
+                    usuario.alias.isNotEmpty ? usuario.alias[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

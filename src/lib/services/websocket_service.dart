@@ -46,6 +46,7 @@ class GameStateUpdate {
 class PlayerInfo {
   final String id;
   final String alias;
+  final String? avatar;
   final int handSize;
   final int personalDeckSize;
   final int penalties;
@@ -53,6 +54,7 @@ class PlayerInfo {
   PlayerInfo({
     required this.id,
     required this.alias,
+    this.avatar,
     required this.handSize,
     this.personalDeckSize = 0, // Default 0 si no está presente
     required this.penalties,
@@ -62,6 +64,7 @@ class PlayerInfo {
     return PlayerInfo(
       id: json['id'] as String,
       alias: json['alias'] as String,
+      avatar: json['avatar'] as String?,
       handSize: json['handSize'] as int,
       personalDeckSize: (json['personalDeckSize'] as int?) ?? 0, // Null-safe
       penalties: json['penalties'] as int,
@@ -181,12 +184,14 @@ class WebSocketService extends ChangeNotifier {
     });
   }
 
-  void joinRoom(String roomId, String playerId, String alias) {
+  void joinRoom(String roomId, String playerId, String alias, String avatar) {
+    print('[WebSocketService] Sending JOIN: alias=$alias, avatar=$avatar');
     send({
       'type': 'JOIN',
       'roomId': roomId,
       'playerId': playerId,
       'alias': alias,
+      'avatar': avatar,
     });
   }
 

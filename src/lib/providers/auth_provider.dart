@@ -73,4 +73,8 @@ class AuthProvider with ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+  void updateUser(Usuario updatedUser) {
+    _currentUser = updatedUser;
+    notifyListeners();
+  }
 }

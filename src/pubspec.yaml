@@ -30,6 +30,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/avatars/androide/
+    - assets/avatars/ainara/
+    - assets/avatars/cientifico/
+    - assets/avatars/timida/
   fonts:
     - family: SpaceMono
       fonts:

@@ -145,6 +145,7 @@ Map<String, dynamic>? _handleJoin(WebSocketChannel socket, Map<String, dynamic> 
   final roomId = data['roomId'] as String;
   final playerId = data['playerId'] as String;
   final alias = data['alias'] as String;
+  final avatar = data['avatar'] as String? ?? 'default';
 
   final room = manager.getRoom(roomId);
   if (room == null) {
@@ -158,6 +159,7 @@ Map<String, dynamic>? _handleJoin(WebSocketChannel socket, Map<String, dynamic> 
   final player = Player(
     id: playerId,
     alias: alias,
+    avatar: avatar,
     socket: socket,
   );
 

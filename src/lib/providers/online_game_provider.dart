@@ -145,7 +145,8 @@ class OnlineGameProvider with ChangeNotifier {
       return;
     }
 
-    _wsService.joinRoom(roomId, _currentUser!.id, _currentUser!.alias);
+    print('[OnlineGameProvider] Joining room $roomId with avatar: ${_currentUser!.avatar}');
+    _wsService.joinRoom(roomId, _currentUser!.id, _currentUser!.alias, _currentUser!.avatar);
   }
 
   void startOnlineGame() {

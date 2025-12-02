@@ -201,6 +201,7 @@ class GameRoom {
       'players': players.map((p) => {
         'id': p.id,
         'alias': p.alias,
+        'avatar': p.avatar,
         'handSize': p.hand.length,
         'personalDeckSize': p.personalDeck.length,
         'penalties': p.penalties,

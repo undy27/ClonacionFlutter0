@@ -22,7 +22,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => OnlineGameProvider()),
+
         ChangeNotifierProxyProvider<AuthProvider, GameProvider>(
           create: (_) => GameProvider(),
           update: (_, auth, game) => game!..updateUser(auth.currentUser),
