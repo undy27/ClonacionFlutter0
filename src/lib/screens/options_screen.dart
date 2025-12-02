@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
-import '../providers/game_provider.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../services/postgres_service.dart';
@@ -27,7 +27,7 @@ class OptionsScreen extends StatelessWidget {
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -39,9 +39,10 @@ class OptionsScreen extends StatelessWidget {
                       child: SwitchListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                         dense: true,
+                        visualDensity: VisualDensity.compact,
                         title: Text(
                           "MODO OSCURO",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         value: themeProvider.isDarkMode,
                         activeColor: AppTheme.primary,
@@ -57,80 +58,84 @@ class OptionsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Variable Font Size Toggle
-                Consumer<GameProvider>(
-                  builder: (context, gameProvider, child) {
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, child) {
                     return _buildCompactOptionContainer(
                       context,
                       child: SwitchListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                         dense: true,
+                        visualDensity: VisualDensity.compact,
                         title: Text(
                           "TAMAÑO FUENTE VARIABLE",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
-                        value: gameProvider.variableFontSize,
+                        value: themeProvider.variableFontSize,
                         activeColor: AppTheme.primary,
                         onChanged: (value) {
                           SystemSound.play(SystemSoundType.click);
-                          gameProvider.toggleVariableFontSize();
+                          themeProvider.toggleVariableFontSize();
                         },
                       ),
                     );
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Sounds Settings
-                Consumer<GameProvider>(
-                  builder: (context, gameProvider, child) {
-                    return Column(
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, child) {
+                    return Row(
                       children: [
-                        // Music Toggle
-                        _buildCompactOptionContainer(
-                          context,
-                          child: SwitchListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                            dense: true,
-                            title: Text(
-                              "MÚSICA",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: _buildCompactOptionContainer(
+                            context,
+                            child: SwitchListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
+                              title: Text(
+                                "MÚSICA",
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                              value: themeProvider.musicEnabled,
+                              activeColor: AppTheme.primary,
+                              onChanged: (value) {
+                                SystemSound.play(SystemSoundType.click);
+                                themeProvider.toggleMusic();
+                              },
                             ),
-                            value: gameProvider.musicEnabled,
-                            activeColor: AppTheme.primary,
-                            onChanged: (value) {
-                              SystemSound.play(SystemSoundType.click);
-                              gameProvider.toggleMusic();
-                            },
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        
-                        // Sound Effects Toggle
-                        _buildCompactOptionContainer(
-                          context,
-                          child: SwitchListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                            dense: true,
-                            title: Text(
-                              "EFECTOS SONOROS",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildCompactOptionContainer(
+                            context,
+                            child: SwitchListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
+                              title: Text(
+                                "EFECTOS",
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                              value: themeProvider.soundEffectsEnabled,
+                              activeColor: AppTheme.primary,
+                              onChanged: (value) {
+                                SystemSound.play(SystemSoundType.click);
+                                themeProvider.toggleSoundEffects();
+                              },
                             ),
-                            value: gameProvider.soundEffectsEnabled,
-                            activeColor: AppTheme.primary,
-                            onChanged: (value) {
-                              SystemSound.play(SystemSoundType.click);
-                              gameProvider.toggleSoundEffects();
-                            },
                           ),
                         ),
                       ],
                     );
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Interface Theme Selector
                 Consumer<ThemeProvider>(
@@ -140,9 +145,10 @@ class OptionsScreen extends StatelessWidget {
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                         dense: true,
+                        visualDensity: VisualDensity.compact,
                         title: Text(
                           "TEMA VISUAL",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         trailing: DropdownButtonHideUnderline(
                           child: DropdownButton<AppThemeStyle>(
@@ -197,38 +203,7 @@ class OptionsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 12),
-
-                // Card Theme Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: CustomButton(
-                    text: "ESTILO DE CARTA",
-                    color: AppTheme.primary,
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/card_theme');
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Change Password Button (disabled for now)
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: Opacity(
-                    opacity: 0.5,
-                    child: CustomButton(
-                      text: "MODIFICAR CONTRASEÑA",
-                      color: AppTheme.accent,
-                      onPressed: () {
-                        // TODO: Implement password change
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Avatar Selector
                 _buildCompactOptionContainer(
@@ -237,20 +212,20 @@ class OptionsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                         child: Text(
                           "AVATAR",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
                       SizedBox(
-                        height: 100,
+                        height: 100, // Increased height for larger avatars
                         child: Consumer<AuthProvider>(
                           builder: (context, authProvider, _) {
                             final currentAvatar = authProvider.currentUser?.avatar ?? 'cientifico';
                             return ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
                               itemCount: AvatarHelper.availableAvatars.length,
                               itemBuilder: (context, index) {
                                 final avatarName = AvatarHelper.availableAvatars[index];
@@ -288,34 +263,33 @@ class OptionsScreen extends StatelessWidget {
                                     }
                                   },
                                     child: Container(
-                                      margin: const EdgeInsets.only(right: 12, bottom: 12),
+                                      margin: const EdgeInsets.only(right: 8, bottom: 8),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.rectangle,
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
                                           color: isSelected ? AppTheme.primary : Colors.transparent,
-                                          width: 3,
+                                          width: 2,
                                         ),
                                         boxShadow: isSelected ? [
                                           BoxShadow(
                                             color: AppTheme.primary.withOpacity(0.4),
-                                            blurRadius: 8,
-                                            spreadRadius: 2,
+                                            blurRadius: 6,
+                                            spreadRadius: 1,
                                           )
                                         ] : null,
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(9), // 12 - 3 (border)
+                                        borderRadius: BorderRadius.circular(8),
                                         child: Image.asset(
                                           AvatarHelper.getAvatarPath(avatarName, 0),
-                                          width: 70,
-                                          height: 70,
+                                          width: 80, // Increased size
+                                          height: 80, // Increased size
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) {
-                                            debugPrint('Error loading avatar: $avatarName');
                                             return Container(
-                                              width: 70,
-                                              height: 70,
+                                              width: 80,
+                                              height: 80,
                                               color: Colors.grey[200],
                                               child: const Icon(Icons.person, color: Colors.grey),
                                             );
@@ -330,6 +304,68 @@ class OptionsScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Card Theme Button
+                _buildCompactOptionContainer(
+                  context,
+                  child: Material(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(10), // Match container radius - border width
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        SystemSound.play(SystemSoundType.click);
+                        Navigator.pushNamed(context, '/card_theme');
+                      },
+                      child: Container(
+                        height: 40,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          "ESTILO DE CARTA",
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 13,
+                            color: Colors.white
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Change Password Button (disabled for now)
+                Opacity(
+                  opacity: 0.5,
+                  child: _buildCompactOptionContainer(
+                    context,
+                    child: Material(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          // TODO: Implement password change
+                        },
+                        child: Container(
+                          height: 40,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            "MODIFICAR CONTRASEÑA",
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 13,
+                              color: Colors.white
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],

@@ -45,6 +45,10 @@ class ThemeProvider with ChangeNotifier {
       }
     }
     
+    _variableFontSize = prefs.getBool('variableFontSize') ?? true;
+    _musicEnabled = prefs.getBool('musicEnabled') ?? true;
+    _soundEffectsEnabled = prefs.getBool('soundEffectsEnabled') ?? true;
+    
     notifyListeners();
   }
 
@@ -101,5 +105,35 @@ class ThemeProvider with ChangeNotifier {
     }
     
     if (changed) notifyListeners();
+  }
+
+  // Game Settings
+  bool _variableFontSize = true;
+  bool _musicEnabled = true;
+  bool _soundEffectsEnabled = true;
+
+  bool get variableFontSize => _variableFontSize;
+  bool get musicEnabled => _musicEnabled;
+  bool get soundEffectsEnabled => _soundEffectsEnabled;
+
+  void toggleVariableFontSize() async {
+    _variableFontSize = !_variableFontSize;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('variableFontSize', _variableFontSize);
+  }
+  
+  void toggleMusic() async {
+    _musicEnabled = !_musicEnabled;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('musicEnabled', _musicEnabled);
+  }
+  
+  void toggleSoundEffects() async {
+    _soundEffectsEnabled = !_soundEffectsEnabled;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('soundEffectsEnabled', _soundEffectsEnabled);
   }
 }

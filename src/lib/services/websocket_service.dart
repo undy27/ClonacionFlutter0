@@ -13,6 +13,7 @@ class GameStateUpdate {
   final List<Carta> myHand;
   final List<List<Carta>> discardPiles;
   final int remainingDeckSize;
+  final int maxPlayers;
 
   GameStateUpdate({
     required this.roomId,
@@ -21,6 +22,7 @@ class GameStateUpdate {
     required this.myHand,
     required this.discardPiles,
     required this.remainingDeckSize,
+    required this.maxPlayers,
   });
 
   factory GameStateUpdate.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class GameStateUpdate {
               .toList())
           .toList(),
       remainingDeckSize: json['remainingDeckSize'] as int,
+      maxPlayers: (json['maxPlayers'] as int?) ?? 4, // Default 4 si no viene
     );
   }
 }

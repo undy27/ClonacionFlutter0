@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/game_provider.dart';
-import '../widgets/partida_list_item.dart';
+import '../providers/online_game_provider.dart';
 import '../widgets/create_game_dialog.dart';
 import '../theme/app_theme.dart';
 
@@ -15,12 +14,35 @@ class GameListScreen extends StatefulWidget {
 
 class _GameListScreenState extends State<GameListScreen> {
   Timer? _timer;
+  bool _isConnecting = false;
 
   @override
   void initState() {
     super.initState();
-    _refreshList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _connectAndRefresh();
+    });
     _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refreshList());
+  }
+
+  Future<void> _connectAndRefresh() async {
+    final provider = Provider.of<OnlineGameProvider>(context, listen: false);
+    if (!provider.isConnected) {
+      setState(() => _isConnecting = true);
+      await provider.connectToServer();
+      setState(() => _isConnecting = false);
+    }
+    _refreshList();
+  }
+
+  void _refreshList() {
+    if (mounted) {
+      final provider = Provider.of<OnlineGameProvider>(context, listen: false);
+      // Only fetch if not in a room
+      if (provider.currentRoomId == null) {
+        provider.fetchRooms();
+      }
+    }
   }
 
   @override
@@ -29,25 +51,37 @@ class _GameListScreenState extends State<GameListScreen> {
     super.dispose();
   }
 
-  void _refreshList() {
-    if (mounted) {
-      Provider.of<GameProvider>(context, listen: false).loadPartidasDisponibles();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Partidas"),
+        title: const Text("Partidas Online"),
+        actions: [
+          Consumer<OnlineGameProvider>(
+            builder: (context, provider, _) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Icon(
+                  provider.isConnected ? Icons.wifi : Icons.wifi_off,
+                  color: provider.isConnected ? Colors.green : Colors.red,
+                ),
+              );
+            },
+          )
+        ],
       ),
-      body: Consumer<GameProvider>(
-        builder: (context, gameProvider, child) {
-          if (gameProvider.isLoading && gameProvider.partidas.isEmpty) {
+      body: Consumer<OnlineGameProvider>(
+        builder: (context, provider, child) {
+          if (_isConnecting || (provider.isConnecting && provider.availableRooms.isEmpty)) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          // if (provider.currentRoomId != null) {
+          //   // This logic causes infinite navigation loops if GameListScreen is in the stack
+          //   // We handle navigation explicitly in onTap and onCreate
+          // }
           
-          if (gameProvider.partidas.isEmpty) {
+          if (provider.availableRooms.isEmpty) {
              return Center(
                child: Column(
                  mainAxisAlignment: MainAxisAlignment.center,
@@ -55,12 +89,20 @@ class _GameListScreenState extends State<GameListScreen> {
                    Icon(Icons.games_outlined, size: 64, color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey),
                    const SizedBox(height: 16),
                    Text(
-                     "No hay partidas disponibles.\n¡Crea una nueva!",
+                     "No hay partidas online disponibles.\n¡Crea una nueva!",
                      textAlign: TextAlign.center,
                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                        color: Theme.of(context).textTheme.bodyMedium?.color
                      ),
                    ),
+                   if (!provider.isConnected)
+                     Padding(
+                       padding: const EdgeInsets.only(top: 16.0),
+                       child: ElevatedButton(
+                         onPressed: _connectAndRefresh,
+                         child: const Text("Reconectar"),
+                       ),
+                     ),
                  ],
                ),
              );
@@ -68,25 +110,44 @@ class _GameListScreenState extends State<GameListScreen> {
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: gameProvider.partidas.length,
+            itemCount: provider.availableRooms.length,
             itemBuilder: (context, index) {
-              final partida = gameProvider.partidas[index];
-              return PartidaListItem(
-                partida: partida,
-                onTap: () async {
-                   print("Tapped on game: ${partida.id}");
-                   final success = await gameProvider.joinPartida(partida.id);
-                   if (success && mounted) {
-                      Navigator.pushNamed(context, '/waiting_room');
-                   } else if (mounted) {
+              final room = provider.availableRooms[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  title: Text(
+                    room['name'] ?? 'Sala sin nombre',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    'Jugadores: ${room['players']}/${room['maxPlayers']}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    if (provider.isConnected) {
+                      _timer?.cancel(); // Stop polling
+                      
+                      provider.leaveRoom();
+                      provider.joinRoom(room['id'], "", ""); 
+                      
+                      await Navigator.pushNamed(context, '/waiting_room');
+                      
+                      // Restart polling when back
+                      if (mounted) {
+                        _refreshList();
+                        _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refreshList());
+                      }
+                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Error al unirse a la partida"),
-                          backgroundColor: AppTheme.error,
-                        ),
+                        const SnackBar(content: Text("No estás conectado al servidor")),
                       );
-                   }
-                },
+                    }
+                  },
+                ),
               );
             },
           );
@@ -94,35 +155,37 @@ class _GameListScreenState extends State<GameListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Capture the screen context before showing dialog
           final screenContext = context;
-          
           showDialog(
             context: context,
             builder: (context) => CreateGameDialog(
               onCreate: (nombre, jugadores, minRating, maxRating) async {
-                print('GameListScreen: onCreate called');
-                final success = await Provider.of<GameProvider>(screenContext, listen: false)
-                    .createPartida(nombre, jugadores, minRating, maxRating);
-                
-                print('GameListScreen: createPartida returned success=$success, screenContext.mounted=${screenContext.mounted}');
-                
-                if (success && screenContext.mounted) {
-                  print('GameListScreen: Navigating to /waiting_room');
-                  Navigator.of(screenContext).pushNamed('/waiting_room');
-                  print('GameListScreen: Navigation called');
-                } else if (screenContext.mounted) {
-                  print('GameListScreen: Showing error snackbar');
-                  ScaffoldMessenger.of(screenContext).showSnackBar(
-                    const SnackBar(
-                      content: Text("Error al crear la partida"),
-                      backgroundColor: AppTheme.error,
-                    ),
-                  );
+                final provider = Provider.of<OnlineGameProvider>(screenContext, listen: false);
+                if (provider.isConnected) {
+                   // Clean up any previous room state
+                   provider.leaveRoom();
+                   
+                   final roomId = DateTime.now().millisecondsSinceEpoch.toString();
+                   provider.createOnlineRoom(roomId, nombre, jugadores);
+                   // Join immediately
+                   provider.joinRoom(roomId, "", ""); 
+                   
+                   // Stop polling
+                   _timer?.cancel();
+                   
+                   // Navigate to waiting room
+                   await Navigator.of(screenContext).pushNamed('/waiting_room');
+                   
+                   // Restart polling when back
+                   if (mounted) {
+                     _refreshList();
+                     _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refreshList());
+                   }
                 } else {
-                  print('GameListScreen: ERROR - screenContext is not mounted!');
+                   ScaffoldMessenger.of(screenContext).showSnackBar(
+                     const SnackBar(content: Text("No estás conectado al servidor")),
+                   );
                 }
-                print('GameListScreen: onCreate finished');
               },
             ),
           );

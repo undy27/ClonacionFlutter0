@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
-import 'providers/game_provider.dart';
+
 import 'screens/home_screen.dart';
 import 'screens/game_list_screen.dart';
 import 'screens/game_screen.dart';
@@ -23,10 +23,6 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
 
-        ChangeNotifierProxyProvider<AuthProvider, GameProvider>(
-          create: (_) => GameProvider(),
-          update: (_, auth, game) => game!..updateUser(auth.currentUser),
-        ),
         ChangeNotifierProxyProvider<AuthProvider, OnlineGameProvider>(
           create: (_) => OnlineGameProvider(),
           update: (_, auth, onlineGame) => onlineGame!..setUser(auth.currentUser),

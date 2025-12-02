@@ -5,6 +5,7 @@ import '../services/websocket_service.dart';
 import '../models/carta.dart';
 import '../models/usuario.dart';
 import '../config/server_config.dart';
+import 'package:http/http.dart' as http;
 
 enum OnlineGameMode { offline, online }
 
@@ -20,6 +21,7 @@ class OnlineGameProvider with ChangeNotifier {
   List<List<Carta>> _discardPiles = [[], [], [], []];
   List<PlayerInfo> _players = [];
   int _remainingDeckSize = 0;
+  int _maxPlayers = 4;
   String _gameStatus = 'waiting';
   
   bool _isConnecting = false;
@@ -44,8 +46,10 @@ class OnlineGameProvider with ChangeNotifier {
   List<List<Carta>> get discardPiles => _discardPiles;
   List<PlayerInfo> get players => _players;
   int get remainingDeckSize => _remainingDeckSize;
+  int get maxPlayers => _maxPlayers;
   String get gameStatus => _gameStatus;
-
+  Usuario? get currentUser => _currentUser;
+  
   OnlineGameProvider() {
     _setupListeners();
   }
@@ -57,6 +61,7 @@ class OnlineGameProvider with ChangeNotifier {
       _discardPiles = state.discardPiles;
       _players = state.players;
       _remainingDeckSize = state.remainingDeckSize;
+      _maxPlayers = state.maxPlayers;
       _gameStatus = state.status;
       _currentRoomId = state.roomId;
       
@@ -177,6 +182,28 @@ class OnlineGameProvider with ChangeNotifier {
     _wsService.disconnect();
     _mode = OnlineGameMode.offline;
     leaveRoom();
+  }
+
+  List<Map<String, dynamic>> _availableRooms = [];
+  List<Map<String, dynamic>> get availableRooms => _availableRooms;
+
+  Future<void> fetchRooms() async {
+    try {
+      final response = await http.get(Uri.parse('${ServerConfig.gameServerUrl.replaceFirst("ws://", "http://").replaceFirst("/ws", "")}/rooms'));
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newRooms = List<Map<String, dynamic>>.from(data['rooms']);
+        
+        // Simple comparison to avoid unnecessary notifies
+        if (jsonEncode(newRooms) != jsonEncode(_availableRooms)) {
+          _availableRooms = newRooms;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching rooms: $e');
+    }
   }
 
   @override

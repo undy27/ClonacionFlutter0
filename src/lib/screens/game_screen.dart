@@ -26,6 +26,7 @@ class _GameScreenState extends State<GameScreen> {
   // State for animations
   Map<int, MatchDetails> _pileAnimations = {};
   StreamSubscription? _cardPlayedSubscription;
+  List<String> _lastSortedIds = [];
 
   @override
   void initState() {
@@ -69,61 +70,41 @@ class _GameScreenState extends State<GameScreen> {
 
   void _handleCardDiscard(Carta carta, int pileIndex) {
     final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
-    final isOnlineMode = onlineProvider.currentRoomId != null;
+    // En modo online, enviar al servidor
+    final myHand = onlineProvider.myHand;
+    final cardIndex = myHand.indexWhere((c) => 
+      c.multiplicaciones == carta.multiplicaciones &&
+      c.division == carta.division &&
+      c.resultados == carta.resultados
+    );
     
-    if (isOnlineMode) {
-      // En modo online, enviar al servidor
-      final myHand = onlineProvider.myHand;
-      final cardIndex = myHand.indexWhere((c) => 
-        c.multiplicaciones == carta.multiplicaciones &&
-        c.division == carta.division &&
-        c.resultados == carta.resultados
-      );
-      
-      if (cardIndex >= 0) {
-        onlineProvider.playCard(cardIndex, pileIndex);
-      }
-    } else {
-      // En modo offline, usar lógica local
-      final gameProvider = Provider.of<GameProvider>(context, listen: false);
-      bool success = gameProvider.intentarDescarte(carta, pileIndex);
-      if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("¡Descarte inválido!"),
-            backgroundColor: AppTheme.error,
-            duration: Duration(milliseconds: 600),
-          ),
-        );
-      }
+    if (cardIndex >= 0) {
+      onlineProvider.playCard(cardIndex, pileIndex);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final gameProvider = Provider.of<GameProvider>(context);
     final onlineProvider = Provider.of<OnlineGameProvider>(context);
     final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Detectar modo online según si hay roomId activo
-    final isOnlineMode = onlineProvider.currentRoomId != null;
-    
-    // Obtener datos del provider correcto
-    final List<Carta> myHand = isOnlineMode ? onlineProvider.myHand : gameProvider.mano;
-    final List<List<Carta>> discardPiles = isOnlineMode ? onlineProvider.discardPiles : gameProvider.montonesDescarte;
+    // Obtener datos del provider online
+    final List<Carta> myHand = onlineProvider.myHand;
+    final List<List<Carta>> discardPiles = onlineProvider.discardPiles;
     
     int myDeckSize = 0;
-    if (isOnlineMode) {
+    // Find my player info to get deck size
+    if (onlineProvider.players.isNotEmpty) {
       final myPlayer = onlineProvider.players.firstWhere(
-        (p) => p.id == gameProvider.currentUser?.id, 
+        (p) => p.id == onlineProvider.currentUser?.id, 
         orElse: () => PlayerInfo(id: '', alias: '', handSize: 0, personalDeckSize: 0, penalties: 0)
       );
       myDeckSize = myPlayer.personalDeckSize;
       debugPrint('[GameScreen] MyPlayer: ${myPlayer.alias}, DeckSize: $myDeckSize, Players: ${onlineProvider.players.length}');
     }
 
-    debugPrint('[GameScreen] Mode: ${isOnlineMode ? "ONLINE" : "OFFLINE"}, Hand: ${myHand.length}, Piles: ${discardPiles.map((p) => p.length).toList()}');
+    debugPrint('[GameScreen] Mode: ONLINE, Hand: ${myHand.length}, Piles: ${discardPiles.map((p) => p.length).toList()}');
     
     // Fixed margins - NEVER change with screen size
     // Fixed margins - NEVER change with screen size
@@ -167,10 +148,11 @@ class _GameScreenState extends State<GameScreen> {
     final lowerZoneHeight = (cardHeight * 2) + cardSpacing;
 
     // Calculate max chars in board for variable font size logic
-    int maxCharsInBoard = 3; // Minimum default
-    if (!gameProvider.variableFontSize) {
-      maxCharsInBoard = _calculateMaxCharsInBoard(myHand, discardPiles);
-    }
+    // Always use variable font size for now
+    int maxCharsInBoard = 3; 
+    // if (!gameProvider.variableFontSize) {
+    //   maxCharsInBoard = _calculateMaxCharsInBoard(myHand, discardPiles);
+    // }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -201,9 +183,9 @@ class _GameScreenState extends State<GameScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: true),
                                 SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: true),
                               ],
                             ),
                           ),
@@ -216,9 +198,9 @@ class _GameScreenState extends State<GameScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: true),
                                 SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: true),
                               ],
                             ),
                           ),
@@ -235,7 +217,7 @@ class _GameScreenState extends State<GameScreen> {
                       padding: const EdgeInsets.only(right: rightMargin),
                       child: SizedBox(
                         height: upperZoneHeight,
-                        child: _buildPlayersInfo(gameProvider),
+                        child: _buildPlayersInfo(),
                       ),
                     ),
                   ),
@@ -260,11 +242,11 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(0, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                          _buildHandCard(0, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(1, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                          _buildHandCard(1, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(2, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                          _buildHandCard(2, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
                         ],
                       ),
                      ),
@@ -275,13 +257,13 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHandCard(3, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                          _buildHandCard(3, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
                           SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(4, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: gameProvider.variableFontSize),
+                          _buildHandCard(4, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
                           SizedBox(width: cardSpacingHorizontal),
                           _buildDeck(
-                            isOnlineMode ? myDeckSize : gameProvider.mazoRestante.length,
-                            isOnlineMode ? 24 : gameProvider.initialDeckSize,
+                            myDeckSize,
+                            24,
                             cardWidth, 
                             cardHeight
                           ),
@@ -425,33 +407,25 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildPlayersInfo(GameProvider provider) {
+  Widget _buildPlayersInfo() {
     final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
     final isOnline = onlineProvider.isOnline;
 
     List<JugadorInfo> players = [];
 
-    if (isOnline) {
-      // Map online players to JugadorInfo
-      players = onlineProvider.players.map((p) {
-        // Calculate total remaining cards (hand + personal deck)
-        final totalCards = p.handSize + p.personalDeckSize;
-        
-        return JugadorInfo(
-          id: p.id,
-          alias: p.alias,
-          avatar: p.avatar,
-          cartasRestantes: totalCards,
-          penalizaciones: p.penalties,
-        );
-      }).toList();
-    } else {
-      // Offline mode
-      final partida = provider.currentPartida;
-      if (partida != null) {
-        players = partida.jugadores;
-      }
-    }
+    // Map online players to JugadorInfo
+    players = onlineProvider.players.map((p) {
+      // Calculate total remaining cards (hand + personal deck)
+      final totalCards = p.handSize + p.personalDeckSize;
+      
+      return JugadorInfo(
+        id: p.id,
+        alias: p.alias,
+        avatar: p.avatar,
+        cartasRestantes: totalCards,
+        penalizaciones: p.penalties,
+      );
+    }).toList();
 
     if (players.isEmpty) {
       return const Center(child: Text('No hay información de jugadores'));
@@ -474,7 +448,20 @@ class _GameScreenState extends State<GameScreen> {
     sortedPlayers.sort((a, b) {
       final compare = a.cartasRestantes.compareTo(b.cartasRestantes);
       if (compare != 0) return compare;
-      return a.alias.compareTo(b.alias); // Tie-breaker
+      
+      // Tie-breaker: Maintain previous relative order if possible
+      if (_lastSortedIds.contains(a.id) && _lastSortedIds.contains(b.id)) {
+        return _lastSortedIds.indexOf(a.id).compareTo(_lastSortedIds.indexOf(b.id));
+      }
+      
+      return a.alias.compareTo(b.alias); // Fallback Tie-breaker
+    });
+    
+    // Update last sorted ids for next frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _lastSortedIds = sortedPlayers.map((p) => p.id).toList();
+      }
     });
 
     // Calculate total height needed for the stack
@@ -493,13 +480,13 @@ class _GameScreenState extends State<GameScreen> {
 
           return AnimatedPositioned(
             key: ValueKey(jugador.id),
-            duration: const Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 1000),
             curve: Curves.easeInOutCubic,
             top: topPosition,
             left: 0,
             right: 0,
             height: itemHeight,
-            child: _buildPlayerInfoItem(jugador, provider, playerBoxHeight, avatarState),
+            child: _buildPlayerInfoItem(jugador, playerBoxHeight, avatarState),
           );
         }).toList(),
       ),
@@ -522,9 +509,10 @@ class _GameScreenState extends State<GameScreen> {
     return 2;
   }
 
-  Widget _buildPlayerInfoItem(JugadorInfo jugador, GameProvider provider, double availableHeight, int avatarState) {
+  Widget _buildPlayerInfoItem(JugadorInfo jugador, double availableHeight, int avatarState) {
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCurrentUser = jugador.id == provider.currentUser?.id;
+    final isCurrentUser = jugador.id == onlineProvider.currentUser?.id;
     
     // Scale elements
     // Reduced avatar size further to fit in box (0.315 -> 0.28)
@@ -561,6 +549,7 @@ class _GameScreenState extends State<GameScreen> {
           // Avatar
           Container(
             decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2C2C2C) : Colors.white, // Solid background
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
@@ -682,9 +671,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
       ),
-      child: Transform.rotate(
-        angle: angleRadians,
-        child: CartaWidget(
+      child: CartaWidget(
           carta: carta,
           width: w,
           height: h,
@@ -694,7 +681,6 @@ class _GameScreenState extends State<GameScreen> {
           maxCharsInBoard: maxChars,
           useVariableFont: useVariableFont,
         ),
-      ),
     );
   }
 
@@ -757,10 +743,7 @@ class _GameScreenState extends State<GameScreen> {
             Positioned(
                 left: offsetX,
                 top: offsetY,
-                child: Transform.rotate(
-                    angle: angleRadians,
-                    child: buildCardBack(),
-                ),
+                child: buildCardBack(),
             )
         );
     }
@@ -776,8 +759,6 @@ class _GameScreenState extends State<GameScreen> {
             // TODO: Implementar robar carta
             print('Robar carta');
           },
-          child: Transform.rotate(
-            angle: angleRadiansTop,
             child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -819,7 +800,6 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                 ]
             ),
-          ),
         )
     );
     

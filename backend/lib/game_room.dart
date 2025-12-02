@@ -29,7 +29,12 @@ class GameRoom {
     if (players.length < maxPlayers && status == GameStatus.waiting) {
       players.add(player);
       print('[Room $id] Player ${player.alias} joined (${players.length}/$maxPlayers)');
-      _broadcastGameState();
+      
+      if (players.length >= maxPlayers) {
+        startGame();
+      } else {
+        _broadcastGameState();
+      }
     }
   }
 
@@ -197,6 +202,7 @@ class GameRoom {
   Map<String, dynamic> _getGameStateForPlayer(Player player) {
     return {
       'roomId': id,
+      'maxPlayers': maxPlayers,
       'status': status.toString().split('.').last,
       'players': players.map((p) => {
         'id': p.id,
