@@ -673,9 +673,9 @@ class _GameScreenState extends State<GameScreen> {
     final isCurrentUser = jugador.id == onlineProvider.currentUser?.id;
     
     // Scale elements
-    // Reduced avatar size further to fit in box (0.315 -> 0.28)
+    // Reduced avatar size further to fit in box (0.315 -> 0.28) -> Increased by 8% (0.30)
     print('GameScreen: Rendering player ${jugador.alias} with avatar: ${jugador.avatar}');
-    final avatarRadius = (availableHeight * 0.28).clamp(10.0, 20.0);
+    final avatarRadius = (availableHeight * 0.30).clamp(10.0, 22.0);
     final fontSizeStats = (availableHeight * 0.18).clamp(10.0, 14.0);
     final iconSize = (availableHeight * 0.18).clamp(12.0, 16.0);
     
