@@ -294,7 +294,9 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildEliminatedOverlay() {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pop(); // Volver al menú
+        final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+        onlineProvider.disconnect();
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       },
       child: Container(
         color: Colors.black.withOpacity(0.85),
@@ -339,7 +341,9 @@ class _GameScreenState extends State<GameScreen> {
     
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pop();
+        final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+        onlineProvider.disconnect();
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       },
       child: Container(
         color: Colors.black.withOpacity(0.9),
