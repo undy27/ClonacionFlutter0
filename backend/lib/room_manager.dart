@@ -42,6 +42,14 @@ class RoomManager {
         .toList();
   }
 
+  GameRoom? findRoomWithPlayer(String playerId) {
+    try {
+      return _rooms.values.firstWhere((room) => room.players.any((p) => p.id == playerId));
+    } catch (e) {
+      return null;
+    }
+  }
+
   void cleanupEmptyRooms() {
     final toRemove = <String>[];
     _rooms.forEach((id, room) {

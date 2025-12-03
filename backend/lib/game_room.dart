@@ -26,6 +26,16 @@ class GameRoom {
   });
 
   void addPlayer(Player player) {
+    // Check if player already exists
+    final existingIndex = players.indexWhere((p) => p.id == player.id);
+    if (existingIndex != -1) {
+      print('[Room $id] Player ${player.alias} reconnected/updated');
+      // Update the existing player with the new socket/info
+      players[existingIndex] = player;
+      _broadcastGameState();
+      return;
+    }
+
     if (players.length < maxPlayers && status == GameStatus.waiting) {
       players.add(player);
       print('[Room $id] Player ${player.alias} joined (${players.length}/$maxPlayers)');

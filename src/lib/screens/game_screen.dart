@@ -66,7 +66,7 @@ class _GameScreenState extends State<GameScreen> {
               _pileHalos[pileIndex] = true;
             });
             
-            Future.delayed(const Duration(milliseconds: 500), () {
+            Future.delayed(const Duration(milliseconds: 800), () {
               if (mounted) {
                 setState(() {
                   _pileHalos.remove(pileIndex);
@@ -475,7 +475,7 @@ class _GameScreenState extends State<GameScreen> {
           child: Center(
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 1.0, end: 1.4),
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 800),
               curve: Curves.easeOut,
               builder: (context, value, child) {
                 return Opacity(
