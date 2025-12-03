@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  # Backend del Juego (Dart Server - WebSockets)
+  backend:
+    build:
+      context: ./backend # Ruta relativa a donde pongas este archivo y la carpeta backend
+      dockerfile: Dockerfile
+    image: clonacion_backend:latest
+    container_name: clonacion_backend
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+    restart: unless-stopped

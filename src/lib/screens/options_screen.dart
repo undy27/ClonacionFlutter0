@@ -9,6 +9,8 @@ import '../services/postgres_service.dart';
 import 'package:flutter/services.dart';
 import '../utils/avatar_helper.dart';
 import '../models/usuario.dart';
+import '../models/carta.dart';
+import '../widgets/carta_widget.dart';
 
 class OptionsScreen extends StatelessWidget {
   const OptionsScreen({super.key});
@@ -30,16 +32,17 @@ class OptionsScreen extends StatelessWidget {
           // Available height minus vertical padding (16*2) and spacing (8*6)
           final double availableHeight = constraints.maxHeight - 32 - 48;
           
-          // We have 6 standard slots + 1 large slot (avatar, counts as ~2.2 slots)
-          // Total units = 8.2
-          double unitHeight = availableHeight / 8.2;
+          // We have 5 standard slots + 2 large slots (avatar + cards)
+          // Avatar and Card slots count as ~2.65 units each (increased by ~10% relative to total)
+          // Total units = 5 + 2.65 + 2.65 = 10.3
+          double unitHeight = availableHeight / 10.3;
           
           // Clamp to reasonable limits
-          // Min 45 (compact), Max 75 (spacious)
-          unitHeight = unitHeight.clamp(45.0, 75.0);
+          // Min 35 (very compact), Max 60 (spacious)
+          unitHeight = unitHeight.clamp(35.0, 60.0);
           
           final double standardHeight = unitHeight;
-          final double avatarHeight = unitHeight * 2.2;
+          final double avatarHeight = unitHeight * 2.65;
           
           return Center(
             child: SingleChildScrollView(
@@ -114,7 +117,7 @@ class OptionsScreen extends StatelessWidget {
                                 context,
                                 height: standardHeight,
                                 child: SwitchListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                                   dense: true,
                                   visualDensity: VisualDensity.compact,
                                   title: Text(
@@ -136,11 +139,11 @@ class OptionsScreen extends StatelessWidget {
                                 context,
                                 height: standardHeight,
                                 child: SwitchListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                                   dense: true,
                                   visualDensity: VisualDensity.compact,
                                   title: Text(
-                                    "EFECTOS",
+                                    "SONIDO",
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
                                   ),
                                   value: themeProvider.soundEffectsEnabled,
@@ -175,7 +178,7 @@ class OptionsScreen extends StatelessWidget {
                             trailing: DropdownButtonHideUnderline(
                               child: DropdownButton<AppThemeStyle>(
                                 value: themeProvider.themeStyle,
-                                icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
+                                icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).textTheme.bodyMedium?.color),
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
                                 isDense: true,
                                 items: [
@@ -334,32 +337,113 @@ class OptionsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // Card Theme Button
+                    // Card Theme Selector
                     _buildCompactOptionContainer(
                       context,
-                      height: standardHeight,
-                      child: Material(
-                        color: AppTheme.primary,
-                        borderRadius: BorderRadius.circular(10), // Match container radius - border width
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {
-                            SystemSound.play(SystemSoundType.click);
-                            Navigator.pushNamed(context, '/card_theme');
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                      height: avatarHeight, // Same height as avatar selector
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                             child: Text(
                               "ESTILO DE CARTA",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold, 
-                                fontSize: 13,
-                                color: Colors.white
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
-                        ),
+                          Expanded(
+                            child: Consumer<AuthProvider>(
+                              builder: (context, authProvider, _) {
+                                final currentTheme = authProvider.currentUser?.temaCartas ?? 'moderno';
+                                final themes = ['moderno', 'clasico'];
+                                
+                                return ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  itemCount: themes.length,
+                                  itemBuilder: (context, index) {
+                                    final themeName = themes[index];
+                                    final isSelected = currentTheme == themeName;
+                                    
+                                    // Calculate card size based on container height
+                                    // Available height for card: total - text - padding
+                                    final cardHeight = avatarHeight - 34; // Adjusted for padding
+                                    final cardWidth = cardHeight * 0.74; // Aspect ratio
+                                    
+                                    return GestureDetector(
+                                      onTap: () async {
+                                        SystemSound.play(SystemSoundType.click);
+                                        // Update locally
+                                        if (authProvider.currentUser != null) {
+                                          // Create updated user object
+                                          final updatedUser = Usuario(
+                                            id: authProvider.currentUser!.id,
+                                            alias: authProvider.currentUser!.alias,
+                                            avatar: authProvider.currentUser!.avatar,
+                                            rating: authProvider.currentUser!.rating,
+                                            partidasJugadas: authProvider.currentUser!.partidasJugadas,
+                                            victorias: authProvider.currentUser!.victorias,
+                                            derrotas: authProvider.currentUser!.derrotas,
+                                            mejorTiempoVictoria: authProvider.currentUser!.mejorTiempoVictoria,
+                                            mejorTiempoVictoria2j: authProvider.currentUser!.mejorTiempoVictoria2j,
+                                            mejorTiempoVictoria3j: authProvider.currentUser!.mejorTiempoVictoria3j,
+                                            mejorTiempoVictoria4j: authProvider.currentUser!.mejorTiempoVictoria4j,
+                                            temaCartas: themeName, // Update theme
+                                            temaInterfaz: authProvider.currentUser!.temaInterfaz,
+                                            isGuest: authProvider.currentUser!.isGuest,
+                                            isDarkMode: authProvider.currentUser!.isDarkMode,
+                                          );
+                                          
+                                          // Update provider
+                                          authProvider.updateUser(updatedUser);
+                                          
+                                          // Update DB
+                                          await PostgresService().updateTemaCartas(authProvider.currentUser!.id, themeName);
+                                        }
+                                      },
+                                        child: Container(
+                                          margin: const EdgeInsets.only(right: 12, bottom: 8),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.rectangle,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: isSelected ? AppTheme.primary : Colors.transparent,
+                                              width: 3,
+                                            ),
+                                            boxShadow: isSelected ? [
+                                              BoxShadow(
+                                                color: AppTheme.primary.withOpacity(0.4),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                              )
+                                            ] : null,
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(5),
+                                            child: IgnorePointer( // Ignore taps on the card itself so the container handles it
+                                              child: CartaWidget(
+                                                carta: Carta(
+                                                  multiplicaciones: [[3, 7], [10, 4], [6, 6]],
+                                                  division: [24, 8],
+                                                  resultados: [21, 40, 36],
+                                                ),
+                                                tema: themeName,
+                                                width: cardWidth,
+                                                height: cardHeight,
+                                                isVisible: true,
+                                                maxCharsInBoard: 2, // Example
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),
