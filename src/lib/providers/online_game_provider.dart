@@ -206,7 +206,9 @@ class OnlineGameProvider with ChangeNotifier {
 
   Future<void> fetchRooms() async {
     try {
-      final response = await http.get(Uri.parse('${ServerConfig.gameServerUrl.replaceFirst("ws://", "http://").replaceFirst("/ws", "")}/rooms'));
+      final useInternet = _currentUser?.useInternetServer ?? true;
+      final baseUrl = ServerConfig.getBaseUrl(useInternet);
+      final response = await http.get(Uri.parse('$baseUrl/rooms'));
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
