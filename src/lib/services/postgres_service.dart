@@ -56,6 +56,9 @@ class PostgresService {
       try {
         await conn.query("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tema_interfaz VARCHAR(50) DEFAULT 'neo_brutalista'");
       } catch (_) {}
+      try {
+        await conn.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS use_internet_server BOOLEAN DEFAULT TRUE');
+      } catch (_) {}
     } catch (e) {
       print('Error initializing auth tables: $e');
     }
@@ -246,6 +249,22 @@ class PostgresService {
       return true;
     } catch (e) {
       print('Error updating interface theme: $e');
+      return false;
+    }
+  }
+
+  /// Actualiza la preferencia de servidor del usuario
+  Future<bool> updateServerPreference(String usuarioId, bool useInternet) async {
+    try {
+      final conn = await _getConnection();
+      await conn.query(
+        'UPDATE usuarios SET use_internet_server = @useInternet WHERE id = @uid',
+        substitutionValues: {'useInternet': useInternet, 'uid': usuarioId},
+        allowReuse: false,
+      );
+      return true;
+    } catch (e) {
+      print('Error updating server preference: $e');
       return false;
     }
   }

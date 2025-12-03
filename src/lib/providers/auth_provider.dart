@@ -77,4 +77,19 @@ class AuthProvider with ChangeNotifier {
     _currentUser = updatedUser;
     notifyListeners();
   }
+
+  Future<void> toggleServerPreference(bool useInternet) async {
+    if (_currentUser == null) return;
+
+    final success = await PostgresService().updateServerPreference(_currentUser!.id, useInternet);
+    if (success) {
+      // Update local user state
+      // We need to create a copyWith method in Usuario or manually recreate it
+      // Since Usuario fields are final, we recreate it using toJson/fromJson hack or manually
+      final json = _currentUser!.toJson();
+      json['use_internet_server'] = useInternet;
+      _currentUser = Usuario.fromJson(json);
+      notifyListeners();
+    }
+  }
 }

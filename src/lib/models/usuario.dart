@@ -14,6 +14,7 @@ class Usuario {
   final String temaInterfaz;
   final bool isGuest;
   final bool isDarkMode;
+  final bool useInternetServer;
 
   Usuario({
     required this.id,
@@ -31,6 +32,7 @@ class Usuario {
     this.temaInterfaz = 'neo_brutalista',
     this.isGuest = false,
     this.isDarkMode = false,
+    this.useInternetServer = true,
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,7 @@ class Usuario {
       temaInterfaz: json['tema_interfaz'] ?? 'neo_brutalista',
       isGuest: json['is_guest'] ?? false,
       isDarkMode: json['is_dark_mode'] ?? false,
+      useInternetServer: json['use_internet_server'] ?? true,
     );
   }
 
@@ -70,6 +73,7 @@ class Usuario {
       'tema_interfaz': temaInterfaz,
       'is_guest': isGuest,
       'is_dark_mode': isDarkMode,
+      'use_internet_server': useInternetServer,
     };
   }
 }

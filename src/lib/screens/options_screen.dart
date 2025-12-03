@@ -51,6 +51,36 @@ class OptionsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Server Preference Toggle
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        return _buildCompactOptionContainer(
+                          context,
+                          height: standardHeight,
+                          child: SwitchListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            title: Text(
+                              "SERVIDOR INTERNET",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            subtitle: Text(
+                              authProvider.currentUser?.useInternetServer == true ? "clonacion.duckdns.org" : "192.168.1.149",
+                              style: TextStyle(fontSize: 10, color: Colors.grey),
+                            ),
+                            value: authProvider.currentUser?.useInternetServer ?? true,
+                            activeColor: AppTheme.primary,
+                            onChanged: (value) {
+                              SystemSound.play(SystemSoundType.click);
+                              authProvider.toggleServerPreference(value);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+
                     // Dark Mode Toggle
                     Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {

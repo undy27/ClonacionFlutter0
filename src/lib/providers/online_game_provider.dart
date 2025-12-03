@@ -133,7 +133,8 @@ class OnlineGameProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await _wsService.connect(ServerConfig.gameServerUrl);
+      final useInternet = _currentUser?.useInternetServer ?? true;
+      await _wsService.connect(ServerConfig.getGameServerUrl(useInternet));
       _mode = OnlineGameMode.online;
       _isConnecting = false;
       notifyListeners();
