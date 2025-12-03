@@ -711,7 +711,7 @@ class _GameScreenState extends State<GameScreen> {
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                  color: isCurrentUser ? AppTheme.primary : Colors.transparent, 
+                  color: Colors.transparent, 
                   width: 2
               ),
               boxShadow: [
