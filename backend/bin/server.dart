@@ -152,7 +152,11 @@ Map<String, dynamic>? _handleJoin(WebSocketChannel socket, Map<String, dynamic> 
   if (existingRoom != null && existingRoom.id != roomId) {
     print('[Server] Player $playerId found in another room ${existingRoom.id}, removing...');
     existingRoom.removePlayer(playerId);
-    manager.cleanupEmptyRooms();
+    
+    // Only remove the existing room if it becomes empty
+    if (existingRoom.players.isEmpty) {
+      manager.removeRoom(existingRoom.id);
+    }
   }
 
   final room = manager.getRoom(roomId);
