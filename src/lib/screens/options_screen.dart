@@ -66,7 +66,7 @@ class OptionsScreen extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                             subtitle: Text(
-                              authProvider.currentUser?.useInternetServer == true ? "clonacion.duckdns.org" : "192.168.1.149",
+                              authProvider.currentUser?.useInternetServer == true ? "clonacion.duckdns.org" : "192.168.1.7",
                               style: TextStyle(fontSize: 10, color: Colors.grey),
                             ),
                             value: authProvider.currentUser?.useInternetServer ?? true,

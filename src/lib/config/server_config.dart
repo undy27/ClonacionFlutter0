@@ -1,11 +1,11 @@
 class ServerConfig {
   // URLs del servidor
   static const String _internetUrl = 'ws://clonacion.duckdns.org/ws';
-  static const String _localUrl = 'ws://192.168.1.149:8085/ws'; // Ajustar puerto si es necesario, usuario dijo 192.168.1.149
+  static const String _localUrl = 'ws://192.168.1.7:8085/ws'; 
   
   // URL base para endpoints HTTP
   static const String _internetBaseUrl = 'http://clonacion.duckdns.org';
-  static const String _localBaseUrl = 'http://192.168.1.149:8085';
+  static const String _localBaseUrl = 'http://192.168.1.7:8085';
 
   // Getter dinámico
   static String getGameServerUrl(bool useInternet) => useInternet ? _internetUrl : _localUrl;
