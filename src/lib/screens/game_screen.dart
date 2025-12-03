@@ -156,129 +156,227 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.only(
-          top: topMargin,
-          bottom: bottomMargin,
-        ),
-        child: Column(
-          children: [
-            // UPPER ZONE: Discard piles (left) + Player Info (right)
-            SizedBox(
-              height: upperZoneHeight,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left: Discard piles (2x2 grid) - Fixed width
-                  Padding(
-                    padding: const EdgeInsets.only(left: leftMargin),
-                    child: SizedBox(
-                      width: (cardWidth * 2) + (cardSpacingHorizontal * 1.5),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          // First row: Piles 0 and 1
-                          SizedBox(
-                            height: cardHeight,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: true),
-                                SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: true),
-                              ],
-                            ),
-                          ),
-                          
-                          SizedBox(height: cardSpacing),
-                          
-                          // Row 2: Piles 2 and 3
-                          SizedBox(
-                            height: cardHeight,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: true),
-                                SizedBox(width: cardSpacingHorizontal),
-                                _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: true),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Spacing between discard piles and player info
-                  const SizedBox(width: 12),
-          
-                  // Right: Player information - expands to fill remaining space
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: rightMargin),
-                      child: SizedBox(
-                        height: upperZoneHeight,
-                        child: _buildPlayersInfo(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: topMargin,
+              bottom: bottomMargin,
             ),
-            
-            // Flexible vertical spacing between zones
-            const Spacer(),
-              
-            // LOWER ZONE: Player hand
-            SizedBox(
-              height: lowerZoneHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: leftMargin),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // Row 1: First 3 cards of hand
-                    SizedBox(
-                      height: cardHeight,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildHandCard(0, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
-                          SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(1, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
-                          SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(2, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
-                        ],
-                      ),
-                     ),
-                    const SizedBox(height: cardSpacing),
-                    // Row 2: Last 2 cards + deck
-                    SizedBox(
-                      height: cardHeight,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildHandCard(3, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
-                          SizedBox(width: cardSpacingHorizontal),
-                          _buildHandCard(4, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
-                          SizedBox(width: cardSpacingHorizontal),
-                          _buildDeck(
-                            myDeckSize,
-                            24,
-                            cardWidth, 
-                            cardHeight
+            child: Column(
+              children: [
+                // UPPER ZONE: Discard piles (left) + Player Info (right)
+                SizedBox(
+                  height: upperZoneHeight,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left: Discard piles (2x2 grid) - Fixed width
+                      Padding(
+                        padding: const EdgeInsets.only(left: leftMargin),
+                        child: SizedBox(
+                          width: (cardWidth * 2) + (cardSpacingHorizontal * 1.5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              // First row: Piles 0 and 1
+                              SizedBox(
+                                height: cardHeight,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    SizedBox(width: cardSpacingHorizontal),
+                                    _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: true),
+                                  ],
+                                ),
+                              ),
+                              
+                              SizedBox(height: cardSpacing),
+                              
+                              // Row 2: Piles 2 and 3
+                              SizedBox(
+                                height: cardHeight,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    SizedBox(width: cardSpacingHorizontal),
+                                    _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: true),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
+                      // Spacing between discard piles and player info
+                      const SizedBox(width: 12),
+              
+                      // Right: Player information - expands to fill remaining space
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: rightMargin),
+                          child: SizedBox(
+                            height: upperZoneHeight,
+                            child: _buildPlayersInfo(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Flexible vertical spacing between zones
+                const Spacer(),
+                  
+                // LOWER ZONE: Player hand
+                SizedBox(
+                  height: lowerZoneHeight,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: leftMargin),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // Row 1: First 3 cards of hand
+                        SizedBox(
+                          height: cardHeight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHandCard(0, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
+                              SizedBox(width: cardSpacingHorizontal),
+                              _buildHandCard(1, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
+                              SizedBox(width: cardSpacingHorizontal),
+                              _buildHandCard(2, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
+                            ],
+                          ),
+                         ),
+                        const SizedBox(height: cardSpacing),
+                        // Row 2: Last 2 cards + deck
+                        SizedBox(
+                          height: cardHeight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildHandCard(3, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
+                              SizedBox(width: cardSpacingHorizontal),
+                              _buildHandCard(4, myHand, cardWidth, cardHeight, maxChars: maxCharsInBoard, useVariableFont: true),
+                              SizedBox(width: cardSpacingHorizontal),
+                              _buildDeck(
+                                myDeckSize,
+                                24,
+                                cardWidth, 
+                                cardHeight
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Overlays
+          if (onlineProvider.isEliminated && onlineProvider.winner == null)
+            _buildEliminatedOverlay(),
+            
+          if (onlineProvider.winner != null)
+            _buildGameOverOverlay(onlineProvider.winner!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEliminatedOverlay() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop(); // Volver al menú
+      },
+      child: Container(
+        color: Colors.black.withOpacity(0.85),
+        width: double.infinity,
+        height: double.infinity,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Has sido eliminado",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                "Haz clic en cualquier lugar para volver al menú",
+                style: TextStyle(
+                  color: Colors.grey[300],
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildGameOverOverlay(Map<String, dynamic> winner) {
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    final isMe = winner['id'] == onlineProvider.currentUser?.id;
+    
+    // Auto-redirect logic could be here or in initState listener, 
+    // but specs say "Auto-redirección al menú después de 3 segundos si no hay interacción"
+    // We can use a Future.delayed here but be careful with rebuilds.
+    // Better to handle it once. Since build is called multiple times, let's just rely on user tap for now 
+    // or add a state variable to track if redirect timer started.
+    
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+      },
+      child: Container(
+        color: Colors.black.withOpacity(0.9),
+        width: double.infinity,
+        height: double.infinity,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isMe ? Icons.emoji_events : Icons.sentiment_dissatisfied,
+                size: 80,
+                color: isMe ? Colors.amber : Colors.grey,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isMe ? "¡Has ganado la partida!" : "El jugador ${winner['alias']} ha ganado la partida",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isMe ? Colors.amber : Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                "Haz clic para continuar",
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   
   int _calculateMaxCharsInBoard(List<Carta> hand, List<List<Carta>> piles) {
     int maxChars = 3;

@@ -39,12 +39,42 @@ class GameRoom {
   }
 
   void removePlayer(String playerId) {
-    players.removeWhere((p) => p.id == playerId);
-    print('[Room $id] Player $playerId left (${players.length} remaining)');
-    if (players.isEmpty) {
-      print('[Room $id] Empty room, should be cleaned up');
-    } else {
-      _broadcastGameState();
+    // If game is waiting, just remove
+    if (status == GameStatus.waiting) {
+      players.removeWhere((p) => p.id == playerId);
+      print('[Room $id] Player $playerId left (${players.length} remaining)');
+      if (players.isEmpty) {
+        print('[Room $id] Empty room, should be cleaned up');
+      } else {
+        _broadcastGameState();
+      }
+    } 
+    // If game is playing, mark as eliminated or handle forfeit
+    else if (status == GameStatus.playing) {
+      final playerIndex = players.indexWhere((p) => p.id == playerId);
+      if (playerIndex != -1) {
+        final player = players[playerIndex];
+        print('[Room $id] Player ${player.alias} left during game');
+        
+        // Remove player completely or mark as eliminated?
+        // Specs say "Abandona la partida... pierde".
+        // If we remove them, we can't show them in the list.
+        // But if they disconnected (socket closed), we can't send them messages anyway.
+        // Let's remove them from the list to avoid sending messages to closed socket,
+        // but check win condition for others.
+        
+        players.removeAt(playerIndex);
+        
+        // Check if only 1 player remains
+        final activePlayers = players.where((p) => !p.isEliminated).toList();
+        if (activePlayers.length == 1) {
+           _endGame(activePlayers.first.id);
+        } else if (activePlayers.isEmpty) {
+           status = GameStatus.finished; // Everyone left
+        } else {
+           _broadcastGameState();
+        }
+      }
     }
   }
 
@@ -104,6 +134,8 @@ class GameRoom {
   void handlePlayCard(String playerId, int cardIndex, int pileIndex) {
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
     
+    if (player.isEliminated) return;
+
     if (cardIndex < 0 || cardIndex >= player.hand.length) {
       _sendError(player, 'Índice de carta inválido');
       return;
@@ -128,8 +160,13 @@ class GameRoom {
     if (!isValid) {
       print('[Room $id] ${player.alias} attempted INVALID discard on pile $pileIndex');
       player.penalties++;
-      _sendError(player, 'Descarte inválido');
-      _broadcastGameState(); // Broadcast para actualizar penalizaciones
+      
+      if (player.penalties > 3) {
+        _eliminatePlayer(player);
+      } else {
+        _sendError(player, 'Descarte inválido');
+        _broadcastGameState(); // Broadcast para actualizar penalizaciones
+      }
       return;
     }
 
@@ -160,6 +197,25 @@ class GameRoom {
 
     _broadcastGameState();
   }
+  
+  void _eliminatePlayer(Player player) {
+    player.isEliminated = true;
+    print('[Room $id] Player ${player.alias} eliminated (max penalties)');
+    
+    // Notify player specifically
+    player.socket.sink.add(jsonEncode({
+      'type': 'ELIMINATED',
+      'message': 'Has sido eliminado por exceso de penalizaciones',
+    }));
+    
+    // Check if only 1 player remains active
+    final activePlayers = players.where((p) => !p.isEliminated).toList();
+    if (activePlayers.length == 1) {
+      _endGame(activePlayers.first.id);
+    } else {
+      _broadcastGameState();
+    }
+  }
 
   void _broadcastCardPlayed(Player player, Card card, int pileIndex, Map<String, dynamic> matchDetails) {
     print('[Room $id] Broadcasting CARD_PLAYED event');
@@ -177,6 +233,8 @@ class GameRoom {
   void handleDrawCard(String playerId) {
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
     
+    if (player.isEliminated) return;
+
     if (remainingDeck.isEmpty) {
       _sendError(player, 'No hay más cartas en el mazo');
       return;
@@ -211,6 +269,7 @@ class GameRoom {
         'handSize': p.hand.length,
         'personalDeckSize': p.personalDeck.length,
         'penalties': p.penalties,
+        'isEliminated': p.isEliminated,
       }).toList(),
       'myHand': player.hand.map((c) => c.toJson()).toList(),
       'discardPiles': discardPiles.map((pile) => 

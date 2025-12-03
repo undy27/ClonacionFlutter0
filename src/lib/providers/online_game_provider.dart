@@ -26,6 +26,8 @@ class OnlineGameProvider with ChangeNotifier {
   
   bool _isConnecting = false;
   String? _errorMessage;
+  bool _isEliminated = false;
+  Map<String, dynamic>? _winner;
   
   StreamSubscription? _gameStateSubscription;
   StreamSubscription? _messageSubscription;
@@ -49,6 +51,8 @@ class OnlineGameProvider with ChangeNotifier {
   int get maxPlayers => _maxPlayers;
   String get gameStatus => _gameStatus;
   Usuario? get currentUser => _currentUser;
+  bool get isEliminated => _isEliminated;
+  Map<String, dynamic>? get winner => _winner;
   
   OnlineGameProvider() {
     _setupListeners();
@@ -99,10 +103,19 @@ class OnlineGameProvider with ChangeNotifier {
           notifyListeners();
           break;
           
+        case 'ELIMINATED':
+          _isEliminated = true;
+          _errorMessage = message['message'] as String;
+          debugPrint('[OnlineGameProvider] Eliminated: $_errorMessage');
+          notifyListeners();
+          break;
+
         case 'GAME_OVER':
           final winner = message['winner'] as Map<String, dynamic>;
+          _winner = winner;
+          _gameStatus = 'finished';
           debugPrint('[OnlineGameProvider] Game over! Winner: ${winner['alias']}');
-          // TODO: Show game over screen
+          notifyListeners();
           break;
       }
     });
@@ -174,7 +187,10 @@ class OnlineGameProvider with ChangeNotifier {
     _myHand.clear();
     _discardPiles = [[], [], [], []];
     _players.clear();
+    _players.clear();
     _gameStatus = 'waiting';
+    _isEliminated = false;
+    _winner = null;
     notifyListeners();
   }
 

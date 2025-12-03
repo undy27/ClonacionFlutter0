@@ -12,6 +12,7 @@ class Player {
   List<Card> personalDeck = []; // Cartas boca abajo del jugador
   int penalties = 0;
   bool hasShoutedUno = false;
+  bool isEliminated = false;
 
   Player({
     required this.id,
@@ -27,6 +28,7 @@ class Player {
     'handSize': hand.length,
     'personalDeckSize': personalDeck.length,
     'penalties': penalties,
+    'isEliminated': isEliminated,
     if (includeHand) 'hand': hand.map((c) => c.toJson()).toList(),
   };
 }
