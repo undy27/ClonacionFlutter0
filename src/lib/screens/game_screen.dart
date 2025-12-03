@@ -25,6 +25,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   // State for animations
   Map<int, MatchDetails> _pileAnimations = {};
+  Map<int, bool> _pileHalos = {}; // Para el halo rojo de otros jugadores
   StreamSubscription? _cardPlayedSubscription;
   List<String> _lastSortedIds = [];
 
@@ -40,23 +41,39 @@ class _GameScreenState extends State<GameScreen> {
           if (!mounted) return;
           
           final pileIndex = data['pileIndex'] as int;
-          final matchDetailsMap = data['matchDetails'] as Map<String, dynamic>;
-          final matchDetails = MatchDetails.fromJson(matchDetailsMap);
+          final playerId = data['playerId'] as String;
+          final isMe = playerId == onlineProvider.currentUser?.id;
           
-          debugPrint('[GameScreen] Animation event received for pile $pileIndex. Has match: ${matchDetails.hasMatch}');
-          
-          setState(() {
-            _pileAnimations[pileIndex] = matchDetails;
-          });
-          
-          // Clear animation after duration (optional, but good for cleanup)
-          Future.delayed(const Duration(milliseconds: 2000), () {
-            if (mounted) {
-              setState(() {
-                _pileAnimations.remove(pileIndex);
-              });
-            }
-          });
+          if (isMe) {
+            // Animación de operaciones para mí
+            final matchDetailsMap = data['matchDetails'] as Map<String, dynamic>;
+            final matchDetails = MatchDetails.fromJson(matchDetailsMap);
+            
+            setState(() {
+              _pileAnimations[pileIndex] = matchDetails;
+            });
+            
+            Future.delayed(const Duration(milliseconds: 2000), () {
+              if (mounted) {
+                setState(() {
+                  _pileAnimations.remove(pileIndex);
+                });
+              }
+            });
+          } else {
+            // Halo rojo para otros
+            setState(() {
+              _pileHalos[pileIndex] = true;
+            });
+            
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                setState(() {
+                  _pileHalos.remove(pileIndex);
+                });
+              }
+            });
+          }
         });
       }
     });
@@ -185,9 +202,9 @@ class _GameScreenState extends State<GameScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], showHalo: _pileHalos[0] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
                                     SizedBox(width: cardSpacingHorizontal),
-                                    _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], showHalo: _pileHalos[1] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
                                   ],
                                 ),
                               ),
@@ -200,9 +217,9 @@ class _GameScreenState extends State<GameScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], showHalo: _pileHalos[2] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
                                     SizedBox(width: cardSpacingHorizontal),
-                                    _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], showHalo: _pileHalos[3] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
                                   ],
                                 ),
                               ),
@@ -403,7 +420,7 @@ class _GameScreenState extends State<GameScreen> {
     return maxChars;
   }
 
-  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails, int maxChars = 5, bool useVariableFont = true}) {
+  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails, bool showHalo = false, int maxChars = 5, bool useVariableFont = true}) {
     final pile = allPiles[index];
     
     if (pile.isEmpty) {
@@ -446,6 +463,44 @@ class _GameScreenState extends State<GameScreen> {
     if (cardsBelow > count - 1) cardsBelow = count - 1;
     
     List<Widget> stackChildren = [];
+    
+    // 0. Halo animation (if active)
+    if (showHalo) {
+      stackChildren.add(
+        Positioned(
+          left: -w * 0.25,
+          top: -h * 0.25,
+          width: w * 1.5,
+          height: h * 1.5,
+          child: Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 1.0, end: 1.4),
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: (1.4 - value) / 0.4, // Fade out as it grows
+                  child: Container(
+                    width: w * value,
+                    height: h * value,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.8),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
     
     // 1. Add cards below (rendered first so they are at the bottom)
     for (int i = cardsBelow; i >= 1; i--) {
