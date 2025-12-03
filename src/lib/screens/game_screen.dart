@@ -377,6 +377,7 @@ class _GameScreenState extends State<GameScreen> {
         ),
       ),
     );
+  }
   
   int _calculateMaxCharsInBoard(List<Carta> hand, List<List<Carta>> piles) {
     int maxChars = 3;
