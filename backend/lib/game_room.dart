@@ -174,12 +174,18 @@ class GameRoom {
         if (player.penalties > 3) {
         _eliminatePlayer(player);
       } else {
-        // Send specific PENALTY event so client can play sound
+        // Calculate penalty duration based on specs: 4s, 6s, 8s
+        int duration = 4;
+        if (player.penalties == 2) duration = 6;
+        if (player.penalties == 3) duration = 8;
+
+        // Send specific PENALTY event so client can play sound and show countdown
         player.socket.sink.add(jsonEncode({
           'type': 'PENALTY',
           'message': 'Descarte inválido',
           'playerId': player.id,
-          'penalties': player.penalties
+          'penalties': player.penalties,
+          'duration': duration
         }));
         _broadcastGameState(); // Broadcast para actualizar penalizaciones
       }

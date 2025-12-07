@@ -32,6 +32,12 @@ class _GameScreenState extends State<GameScreen> {
   StreamSubscription? _gameOverSubscription;
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<String> _lastSortedIds = [];
+  
+  // Penalty state
+  bool _isPenaltyActive = false;
+  String? _penaltyText;
+  Color _penaltyColor = Colors.red;
+  int _penaltyRenderKey = 0; // To force animation rebuild
 
   @override
   void initState() {
@@ -95,13 +101,9 @@ class _GameScreenState extends State<GameScreen> {
             print('GameScreen: Playing incorrect sound: sonidos/descartes/incorrecto/incorrecto.6.wav');
             _audioPlayer.play(AssetSource('sonidos/descartes/incorrecto/incorrecto.6.wav')).then((_) => print('Audio played successfully')).catchError((e) => print('Audio error: $e'));
             
-            ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(
-                 content: Text(data['message'] ?? '¡Carta incorrecta!'), 
-                 backgroundColor: AppTheme.error,
-                 duration: const Duration(milliseconds: 1500),
-               ),
-            );
+            // Start penalty visual sequence
+            final int duration = (data['duration'] is int) ? data['duration'] : 4;
+            _startPenaltySequence(duration);
           }
         });
 
@@ -144,6 +146,48 @@ class _GameScreenState extends State<GameScreen> {
     if (cardIndex >= 0) {
       onlineProvider.playCard(cardIndex, pileIndex);
     }
+  }
+
+  Future<void> _startPenaltySequence(int totalSeconds) async {
+    if (!mounted) return;
+    
+    // Initial static message (Red)
+    setState(() {
+      _isPenaltyActive = true;
+      _penaltyText = "¡Descarte no válido!";
+      _penaltyColor = AppTheme.error;
+      _penaltyRenderKey++;
+    });
+    
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
+    // Countdown (Green) - From duration-1 down to 1
+    for (int i = totalSeconds - 1; i >= 1; i--) {
+        setState(() {
+           _penaltyText = "$i";
+           _penaltyColor = Colors.green; 
+           _penaltyRenderKey++;
+        });
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+    }
+    
+    // Go! (Green)
+    setState(() {
+       _penaltyText = "¡Go!";
+       _penaltyColor = Colors.green;
+       _penaltyRenderKey++;
+    });
+    
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+    
+    // Unlock
+    setState(() {
+      _isPenaltyActive = false;
+      _penaltyText = null;
+    });
   }
 
   @override
@@ -349,6 +393,47 @@ class _GameScreenState extends State<GameScreen> {
             
           if (onlineProvider.winner != null)
             _buildGameOverOverlay(onlineProvider.winner!),
+
+          // Penalty Overlay
+          if (_isPenaltyActive && _penaltyText != null)
+             Positioned.fill(
+               child: Center(
+                 child: KeyedSubtree(
+                   key: ValueKey(_penaltyRenderKey),
+                   child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 300), 
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                           scale: 0.5 + (value * 0.5), 
+                           child: Opacity(
+                             opacity: value.clamp(0.0, 1.0),
+                             child: Container(
+                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                               decoration: BoxDecoration(
+                                 color: _penaltyColor,
+                                 borderRadius: BorderRadius.circular(16),
+                                 boxShadow: [
+                                   const BoxShadow(color: Colors.black26, blurRadius: 10, spreadRadius: 2)
+                                 ]
+                               ),
+                               child: Text(
+                                 _penaltyText!,
+                                 textAlign: TextAlign.center,
+                                 style: const TextStyle(
+                                   color: Colors.white,
+                                   fontSize: 32,
+                                   fontWeight: FontWeight.bold
+                                 ),
+                               ),
+                             ),
+                           )
+                        );
+                      }
+                   ),
+                 ),
+               ),
+             ),
         ],
       ),
     );
@@ -845,6 +930,7 @@ class _GameScreenState extends State<GameScreen> {
     final angleRadians = angleDegrees * (pi / 180);
     
     return Draggable(
+      maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
       data: carta,
       feedback: Transform.rotate(
         angle: angleRadians,
