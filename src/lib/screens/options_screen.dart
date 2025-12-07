@@ -31,8 +31,9 @@ class OptionsScreen extends StatelessWidget {
           },
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
+      body: SafeArea(
+        child: LayoutBuilder(
+         builder: (context, constraints) {
           // Calculate dynamic heights
           // Calculate dynamic heights
           // Vertical Padding: 16 (top) + 16 (bottom) = 32
@@ -545,6 +546,7 @@ class OptionsScreen extends StatelessWidget {
             ),
           );
         }
+      ),
       ),
     );
   }
