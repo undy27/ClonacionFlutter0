@@ -525,7 +525,7 @@ class _GameScreenState extends State<GameScreen> {
               curve: Curves.easeOut,
               builder: (context, value, child) {
                 return Opacity(
-                  opacity: (1.4 - value) / 0.4, // Fade out as it grows
+                  opacity: ((1.4 - value) / 0.4).clamp(0.0, 1.0), // Fade out as it grows
                   child: Container(
                     width: w * value,
                     height: h * value,

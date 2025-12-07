@@ -111,6 +111,15 @@ class OnlineGameProvider with ChangeNotifier {
         case 'ERROR':
           _errorMessage = message['message'] as String;
           debugPrint('[OnlineGameProvider] Server error: $_errorMessage');
+          
+          // Retrocompatibilidad/Robustez: Si el servidor envía ERROR por descarte inválido, tratarlo como penalización
+          if (_errorMessage.contains('Descarte inválido')) {
+            _penaltyController.add({
+              'playerId': _currentUser?.id, // Error message is sent to the specific player socket
+              'message': _errorMessage
+            });
+          }
+          
           notifyListeners();
           break;
           
