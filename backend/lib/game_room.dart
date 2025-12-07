@@ -171,10 +171,16 @@ class GameRoom {
       print('[Room $id] ${player.alias} attempted INVALID discard on pile $pileIndex');
       player.penalties++;
       
-      if (player.penalties > 3) {
+        if (player.penalties > 3) {
         _eliminatePlayer(player);
       } else {
-        _sendError(player, 'Descarte inválido');
+        // Send specific PENALTY event so client can play sound
+        player.socket.sink.add(jsonEncode({
+          'type': 'PENALTY',
+          'message': 'Descarte inválido',
+          'playerId': player.id,
+          'penalties': player.penalties
+        }));
         _broadcastGameState(); // Broadcast para actualizar penalizaciones
       }
       return;
