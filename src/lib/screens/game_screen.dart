@@ -673,9 +673,9 @@ class _GameScreenState extends State<GameScreen> {
     final isCurrentUser = jugador.id == onlineProvider.currentUser?.id;
     
     // Scale elements
-    // Reduced avatar size further to fit in box (0.315 -> 0.28) -> Increased by 8% (0.30)
+    // Reduced avatar size further to fit in box (0.315 -> 0.28) -> Increased by 8% (0.30) -> Added 2px for removed border
     print('GameScreen: Rendering player ${jugador.alias} with avatar: ${jugador.avatar}');
-    final avatarRadius = (availableHeight * 0.30).clamp(10.0, 22.0);
+    final avatarRadius = (availableHeight * 0.30).clamp(10.0, 22.0) + 2.0;
     final fontSizeStats = (availableHeight * 0.18).clamp(10.0, 14.0);
     final iconSize = (availableHeight * 0.18).clamp(12.0, 16.0);
     
@@ -710,10 +710,7 @@ class _GameScreenState extends State<GameScreen> {
               color: isDark ? const Color(0xFF2C2C2C) : Colors.white, // Solid background
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: Colors.transparent, 
-                  width: 2
-              ),
+              // Border removed to maximize avatar size
               boxShadow: [
                 BoxShadow(
                     color: Colors.black.withOpacity(0.1), 
@@ -723,7 +720,7 @@ class _GameScreenState extends State<GameScreen> {
               ]
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(6), // 8 - 2
+              borderRadius: BorderRadius.circular(8), // Matches container radius
               child: Image.asset(
                 AvatarHelper.getAvatarPath(jugador.avatar ?? 'default', avatarState),
                 width: avatarRadius * 2,

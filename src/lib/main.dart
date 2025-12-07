@@ -47,6 +47,15 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.getTheme(themeProvider.themeStyle, Brightness.dark),
       themeMode: themeProvider.themeMode,
       initialRoute: '/',
+      builder: (context, child) {
+        // Print screen resolution on startup
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final size = MediaQuery.of(context).size;
+          final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+          print('Screen Resolution: ${size.width.toStringAsFixed(1)}x${size.height.toStringAsFixed(1)} (Logical), ${size.width * pixelRatio}x${size.height * pixelRatio} (Physical), Pixel Ratio: $pixelRatio');
+        });
+        return child!;
+      },
       routes: {
         '/': (context) => const AuthScreen(),
         '/home': (context) => const HomeScreen(),

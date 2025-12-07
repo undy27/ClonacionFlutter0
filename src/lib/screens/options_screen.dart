@@ -29,17 +29,28 @@ class OptionsScreen extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           // Calculate dynamic heights
-          // Available height minus vertical padding (16*2) and spacing (8*6)
-          final double availableHeight = constraints.maxHeight - 32 - 48;
+          // Calculate dynamic heights
+          // Vertical Padding: 16 (top) + 16 (bottom) = 32
+          // Spacing Gaps: 8 * 7 (gaps between 8 items/blocks) = 56
+          // Total Fixed Vertical Space: 32 + 56 = 88
+          final double availableHeight = constraints.maxHeight - 88;
           
-          // We have 5 standard slots + 2 large slots (avatar + cards)
-          // Avatar and Card slots count as ~2.65 units each (increased by ~10% relative to total)
-          // Total units = 5 + 2.65 + 2.65 = 10.3
-          double unitHeight = availableHeight / 10.3;
+          // Units Calculation:
+          // Server Pref: 1
+          // Dark Mode: 1
+          // Font Size: 1
+          // Music/Sound: 1
+          // Theme: 1
+          // Avatar: 2.65
+          // Cards: 2.65
+          // Password: 1
+          // Total Units = 6 + 5.3 = 11.3
+          
+          double unitHeight = availableHeight / 11.3;
           
           // Clamp to reasonable limits
-          // Min 35 (very compact), Max 60 (spacious)
-          unitHeight = unitHeight.clamp(35.0, 60.0);
+          // Min 30 (very compact to fit all), Max 60 (spacious)
+          unitHeight = unitHeight.clamp(30.0, 60.0);
           
           final double standardHeight = unitHeight;
           final double avatarHeight = unitHeight * 2.65;
