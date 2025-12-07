@@ -13,9 +13,12 @@ class SoundManager {
       if (_menuPlayer.state == PlayerState.playing) {
         await _menuPlayer.stop();
       }
-      // TEST: Usamos el sonido de descarte que sabemos que funciona para descartar problema de código
-      debugPrint('SoundManager: Playing TEST sound (correct discard)...');
-      await _menuPlayer.play(AssetSource('sonidos/descartes/correcto/correcto.1.wav'), mode: PlayerMode.lowLatency);
+      
+      // Ensure player releases resources after playing
+      await _menuPlayer.setReleaseMode(ReleaseMode.stop);
+      
+      debugPrint('SoundManager: Playing menu sound...');
+      await _menuPlayer.play(AssetSource('sonidos/menu/menu.1.wav'), mode: PlayerMode.lowLatency);
     } catch (e) {
       debugPrint('Error playing menu sound: $e');
     }
