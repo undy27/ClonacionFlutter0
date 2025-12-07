@@ -29,6 +29,7 @@ class _GameScreenState extends State<GameScreen> {
   Map<int, bool> _pileHalos = {}; // Para el halo rojo de otros jugadores
   StreamSubscription? _cardPlayedSubscription;
   StreamSubscription? _penaltySubscription;
+  StreamSubscription? _gameOverSubscription;
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<String> _lastSortedIds = [];
 
@@ -57,7 +58,7 @@ class _GameScreenState extends State<GameScreen> {
             });
             
             // Play valid move sound
-            _audioPlayer.play(AssetSource('sonidos/valid/valido.6.wav'));
+            _audioPlayer.play(AssetSource('sonidos/descartes/correcto/correcto.1.wav'));
             
             Future.delayed(const Duration(milliseconds: 2000), () {
               if (mounted) {
@@ -89,7 +90,7 @@ class _GameScreenState extends State<GameScreen> {
           final playerId = data['playerId'] as String;
           // Play sound ONLY if it's me who made the mistake
           if (playerId == onlineProvider.currentUser?.id) {
-            _audioPlayer.play(AssetSource('sonidos/error/incorrecto.1.wav'));
+            _audioPlayer.play(AssetSource('sonidos/descartes/incorrecto/incorrecto.6.wav'));
             
             ScaffoldMessenger.of(context).showSnackBar(
                SnackBar(
@@ -100,6 +101,20 @@ class _GameScreenState extends State<GameScreen> {
             );
           }
         });
+
+        // Listen for game over (victory/defeat sounds)
+        _gameOverSubscription = onlineProvider.gameOverStream.listen((data) {
+           if (!mounted) return;
+           
+           final winnerMap = data['winner'] as Map<String, dynamic>; 
+           final winnerId = winnerMap['id'] as String;
+           
+           if (winnerId == onlineProvider.currentUser?.id) {
+             _audioPlayer.play(AssetSource('sonidos/victoria/victoria.1.wav'));
+           } else {
+             _audioPlayer.play(AssetSource('sonidos/derrota/derrota.1.wav'));
+           }
+        });
       }
     });
   }
@@ -108,6 +123,7 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     _cardPlayedSubscription?.cancel();
     _penaltySubscription?.cancel();
+    _gameOverSubscription?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }

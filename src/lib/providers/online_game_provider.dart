@@ -39,6 +39,9 @@ class OnlineGameProvider with ChangeNotifier {
   final _penaltyController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get penaltyStream => _penaltyController.stream;
 
+  final _gameOverController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get gameOverStream => _gameOverController.stream;
+
   // Getters
   OnlineGameMode get mode => _mode;
   bool get isOnline => _mode == OnlineGameMode.online;
@@ -123,6 +126,7 @@ class OnlineGameProvider with ChangeNotifier {
           _winner = winner;
           _gameStatus = 'finished';
           debugPrint('[OnlineGameProvider] Game over! Winner: ${winner['alias']}');
+          _gameOverController.add(message);
           notifyListeners();
           break;
       }
