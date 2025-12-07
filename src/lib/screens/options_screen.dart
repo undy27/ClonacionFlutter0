@@ -12,6 +12,8 @@ import '../models/usuario.dart';
 import '../models/carta.dart';
 import '../widgets/carta_widget.dart';
 
+import '../services/sound_manager.dart';
+
 class OptionsScreen extends StatelessWidget {
   const OptionsScreen({super.key});
 
@@ -23,7 +25,10 @@ class OptionsScreen extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            SoundManager().playMenuButton();
+            Navigator.pop(context);
+          },
         ),
       ),
       body: LayoutBuilder(

@@ -4,6 +4,8 @@ import '../theme/app_theme.dart';
 import '../providers/online_game_provider.dart';
 import '../utils/avatar_helper.dart';
 
+import '../services/sound_manager.dart';
+
 class WaitingRoomScreen extends StatefulWidget {
   const WaitingRoomScreen({super.key});
 
@@ -58,6 +60,7 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
+                SoundManager().playMenuButton();
                 provider.leaveRoom();
                 Navigator.pop(context);
               },

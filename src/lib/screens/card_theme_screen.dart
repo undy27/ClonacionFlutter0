@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../models/carta.dart';
 import '../widgets/carta_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/sound_manager.dart';
 
 class CardThemeScreen extends StatefulWidget {
   const CardThemeScreen({super.key});
@@ -86,7 +87,10 @@ class _CardThemeScreenState extends State<CardThemeScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            SoundManager().playMenuButton();
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(

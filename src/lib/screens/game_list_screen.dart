@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/online_game_provider.dart';
 import '../widgets/create_game_dialog.dart';
 import '../theme/app_theme.dart';
+import '../services/sound_manager.dart';
 
 class GameListScreen extends StatefulWidget {
   const GameListScreen({super.key});
@@ -56,6 +57,13 @@ class _GameListScreenState extends State<GameListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Partidas Online"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            SoundManager().playMenuButton();
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           Consumer<OnlineGameProvider>(
             builder: (context, provider, _) {
@@ -155,6 +163,7 @@ class _GameListScreenState extends State<GameListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          SoundManager().playMenuButton();
           final screenContext = context;
           showDialog(
             context: context,

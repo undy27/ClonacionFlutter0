@@ -4,6 +4,7 @@ import '../models/usuario.dart';
 import '../services/postgres_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_helper.dart';
+import '../services/sound_manager.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
@@ -103,11 +104,14 @@ class _RankingScreenState extends State<RankingScreen> with SingleTickerProvider
         backgroundColor: Theme.of(context).primaryColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            SoundManager().playMenuButton();
+            Navigator.pop(context);
+          },
         ),
         bottom: TabBar(
           controller: _tabController,
-          onTap: (_) => SystemSound.play(SystemSoundType.click),
+          onTap: (_) => SoundManager().playMenuButton(),
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
