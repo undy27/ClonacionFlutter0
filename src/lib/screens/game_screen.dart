@@ -56,6 +56,9 @@ class _GameScreenState extends State<GameScreen> {
               _pileAnimations[pileIndex] = matchDetails;
             });
             
+            // Play valid move sound
+            _audioPlayer.play(AssetSource('sonidos/valid/valido.6.wav'));
+            
             Future.delayed(const Duration(milliseconds: 2000), () {
               if (mounted) {
                 setState(() {
@@ -86,7 +89,7 @@ class _GameScreenState extends State<GameScreen> {
           final playerId = data['playerId'] as String;
           // Play sound ONLY if it's me who made the mistake
           if (playerId == onlineProvider.currentUser?.id) {
-            _audioPlayer.play(AssetSource('sonidos/incorrecto.1.wav'));
+            _audioPlayer.play(AssetSource('sonidos/error/incorrecto.1.wav'));
             
             ScaffoldMessenger.of(context).showSnackBar(
                SnackBar(

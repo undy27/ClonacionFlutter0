@@ -36,7 +36,8 @@ flutter:
     - assets/avatars/ainara/
     - assets/avatars/cientifico/
     - assets/avatars/timida/
-    - assets/sonidos/
+    - assets/sonidos/error/
+    - assets/sonidos/valid/
   fonts:
     - family: SpaceMono
       fonts:
