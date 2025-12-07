@@ -68,24 +68,39 @@ class OptionsScreen extends StatelessWidget {
                         return _buildCompactOptionContainer(
                           context,
                           height: standardHeight,
-                          child: SwitchListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            title: Text(
-                              "SERVIDOR INTERNET",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      "SERVIDOR INTERNET",
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    Text(
+                                      authProvider.currentUser?.useInternetServer == true ? "clonacion.duckdns.org" : "192.168.1.7",
+                                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                                Transform.scale(
+                                  scale: 0.8, // Slightly smaller switch to fit better
+                                  child: Switch(
+                                    value: authProvider.currentUser?.useInternetServer ?? true,
+                                    activeColor: AppTheme.primary,
+                                    onChanged: (value) {
+                                      SystemSound.play(SystemSoundType.click);
+                                      authProvider.toggleServerPreference(value);
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                            subtitle: Text(
-                              authProvider.currentUser?.useInternetServer == true ? "clonacion.duckdns.org" : "192.168.1.7",
-                              style: TextStyle(fontSize: 10, color: Colors.grey),
-                            ),
-                            value: authProvider.currentUser?.useInternetServer ?? true,
-                            activeColor: AppTheme.primary,
-                            onChanged: (value) {
-                              SystemSound.play(SystemSoundType.click);
-                              authProvider.toggleServerPreference(value);
-                            },
                           ),
                         );
                       },
