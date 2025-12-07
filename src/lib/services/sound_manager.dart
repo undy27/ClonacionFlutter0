@@ -13,7 +13,8 @@ class SoundManager {
       if (_menuPlayer.state == PlayerState.playing) {
         await _menuPlayer.stop();
       }
-      await _menuPlayer.play(AssetSource('sonidos/menu/menu.1.wav'), mode: PlayerMode.lowLatency);
+      // Use mediaPlayer mode for better compatibility on Android 
+      await _menuPlayer.play(AssetSource('sonidos/menu/menu.1.wav'), mode: PlayerMode.mediaPlayer);
     } catch (e) {
       debugPrint('Error playing menu sound: $e');
     }
