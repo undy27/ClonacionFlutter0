@@ -945,8 +945,8 @@ class _GameScreenState extends State<GameScreen> {
           ),
         ),
       ),
-      childWhenDragging: Opacity(
-        opacity: 0.5,
+      childWhenDragging: ColorFiltered(
+        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.srcATop), // Darken effect instead of real opacity
         child: Transform.rotate(
           angle: angleRadians,
           child: CartaWidget(
