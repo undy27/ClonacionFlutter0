@@ -88,9 +88,12 @@ class _GameScreenState extends State<GameScreen> {
           if (!mounted) return;
           
           final playerId = data['playerId'] as String;
+          print('GameScreen: Received penalty for $playerId. Me: ${onlineProvider.currentUser?.id}');
+          
           // Play sound ONLY if it's me who made the mistake
           if (playerId == onlineProvider.currentUser?.id) {
-            _audioPlayer.play(AssetSource('sonidos/descartes/incorrecto/incorrecto.6.wav'));
+            print('GameScreen: Playing incorrect sound: sonidos/descartes/incorrecto/incorrecto.6.wav');
+            _audioPlayer.play(AssetSource('sonidos/descartes/incorrecto/incorrecto.6.wav')).then((_) => print('Audio played successfully')).catchError((e) => print('Audio error: $e'));
             
             ScaffoldMessenger.of(context).showSnackBar(
                SnackBar(
