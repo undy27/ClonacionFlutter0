@@ -113,7 +113,7 @@ class OnlineGameProvider with ChangeNotifier {
           debugPrint('[OnlineGameProvider] Server error: $_errorMessage');
           
           // Retrocompatibilidad/Robustez: Si el servidor envía ERROR por descarte inválido, tratarlo como penalización
-          if (_errorMessage.contains('Descarte inválido')) {
+          if (_errorMessage != null && _errorMessage!.contains('Descarte inválido')) {
             _penaltyController.add({
               'playerId': _currentUser?.id, // Error message is sent to the specific player socket
               'message': _errorMessage
