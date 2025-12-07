@@ -14,6 +14,7 @@ import 'package:animate_do/animate_do.dart';
 import '../models/partida.dart';
 import '../models/carta.dart';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -27,6 +28,8 @@ class _GameScreenState extends State<GameScreen> {
   Map<int, MatchDetails> _pileAnimations = {};
   Map<int, bool> _pileHalos = {}; // Para el halo rojo de otros jugadores
   StreamSubscription? _cardPlayedSubscription;
+  StreamSubscription? _penaltySubscription;
+  final AudioPlayer _audioPlayer = AudioPlayer();
   List<String> _lastSortedIds = [];
 
   @override
@@ -75,6 +78,25 @@ class _GameScreenState extends State<GameScreen> {
             });
           }
         });
+
+        // Listen for penalty events (sound)
+        _penaltySubscription = onlineProvider.penaltyStream.listen((data) {
+          if (!mounted) return;
+          
+          final playerId = data['playerId'] as String;
+          // Play sound ONLY if it's me who made the mistake
+          if (playerId == onlineProvider.currentUser?.id) {
+            _audioPlayer.play(AssetSource('sonidos/incorrecto.1.wav'));
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(
+                 content: Text(data['message'] ?? '¡Carta incorrecta!'), 
+                 backgroundColor: AppTheme.error,
+                 duration: const Duration(milliseconds: 1500),
+               ),
+            );
+          }
+        });
       }
     });
   }
@@ -82,6 +104,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     _cardPlayedSubscription?.cancel();
+    _penaltySubscription?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 

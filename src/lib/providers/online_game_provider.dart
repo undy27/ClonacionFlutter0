@@ -36,6 +36,9 @@ class OnlineGameProvider with ChangeNotifier {
   final _cardPlayedController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get cardPlayedStream => _cardPlayedController.stream;
 
+  final _penaltyController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get penaltyStream => _penaltyController.stream;
+
   // Getters
   OnlineGameMode get mode => _mode;
   bool get isOnline => _mode == OnlineGameMode.online;
@@ -95,6 +98,11 @@ class OnlineGameProvider with ChangeNotifier {
         case 'CARD_PLAYED':
           debugPrint('[OnlineGameProvider] Received CARD_PLAYED event');
           _cardPlayedController.add(message);
+          break;
+          
+        case 'PENALTY':
+          debugPrint('[OnlineGameProvider] Received PENALTY event');
+          _penaltyController.add(message);
           break;
           
         case 'ERROR':
