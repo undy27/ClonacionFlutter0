@@ -9,7 +9,7 @@ class GameLogic {
     // 1. Generate Superior Rows (Multiplications)
     List<List<int>> basePairs = [];
     
-    // All combinations (109 pairs with restrictions)
+    // All combinations (110 pairs with restrictions)
     for (int i = 0; i <= 10; i++) {
       for (int j = 0; j <= 10; j++) {
         if (i == 10 && j == 10) continue;
@@ -19,13 +19,13 @@ class GameLogic {
       }
     }
 
-    // 46 additional random pairs with unique products
+    // Generate Extra Pairs (46 total) according to specs:
+    // a) 42 pairs with unique products
     List<List<int>> extraPairs = [];
     int attempts = 0;
-    int maxAttempts = 10000;
     
-    print('[GameLogic] Generating 46 extra pairs with unique products');
-    while (extraPairs.length < 46 && attempts < maxAttempts) {
+    print('[GameLogic] Generating 42 extra pairs with unique products');
+    while (extraPairs.length < 42 && attempts < 10000) {
       attempts++;
       int i = random.nextInt(11);
       int j = random.nextInt(11);
@@ -41,16 +41,15 @@ class GameLogic {
       }
     }
     
-    if (extraPairs.length < 46) {
-      print('[GameLogic] WARNING - Could only generate ${extraPairs.length} extra pairs after $attempts attempts');
-      while (extraPairs.length < 46) {
-        int i = random.nextInt(11);
-        int j = random.nextInt(11);
-        if (i == 10 && j == 10) continue;
-        if (i == 0 && j % 2 != 0) continue;
-        if (j == 0 && i % 2 != 0) continue;
-        extraPairs.add([i, j]);
-      }
+    // b) 4 additional random pairs
+    print('[GameLogic] Generating 4 additional random pairs');
+    while (extraPairs.length < 46) {
+      int i = random.nextInt(11);
+      int j = random.nextInt(11);
+      if (i == 10 && j == 10) continue;
+      if (i == 0 && j % 2 != 0) continue;
+      if (j == 0 && i % 2 != 0) continue;
+      extraPairs.add([i, j]);
     }
 
     List<List<int>> allSuperiorPairs = [...basePairs, ...extraPairs];
