@@ -139,6 +139,7 @@ class _GameScreenState extends State<GameScreen> {
     // En modo online, enviar al servidor
     final myHand = onlineProvider.myHand;
     final cardIndex = myHand.indexWhere((c) => 
+      c != null &&
       c.multiplicaciones == carta.multiplicaciones &&
       c.division == carta.division &&
       c.resultados == carta.resultados
@@ -198,7 +199,7 @@ class _GameScreenState extends State<GameScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Obtener datos del provider online
-    final List<Carta> myHand = onlineProvider.myHand;
+    final List<Carta?> myHand = onlineProvider.myHand;
     final List<List<Carta>> discardPiles = onlineProvider.discardPiles;
     
     int myDeckSize = 0;
