@@ -10,7 +10,7 @@ class GameStateUpdate {
   final String roomId;
   final String status;
   final List<PlayerInfo> players;
-  final List<Carta> myHand;
+  final List<Carta?> myHand;
   final List<List<Carta>> discardPiles;
   final int remainingDeckSize;
   final int maxPlayers;
@@ -33,7 +33,7 @@ class GameStateUpdate {
           .map((p) => PlayerInfo.fromJson(p))
           .toList(),
       myHand: (json['myHand'] as List)
-          .map((c) => Carta.fromJson(c))
+          .map((c) => c != null ? Carta.fromJson(c) : null)
           .toList(),
       discardPiles: (json['discardPiles'] as List)
           .map((pile) => (pile as List)

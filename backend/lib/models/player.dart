@@ -8,7 +8,7 @@ class Player {
   final String avatar;
   final WebSocketChannel socket;
   
-  List<Card> hand = []; // Cartas visibles (máximo 5)
+  List<Card?> hand = List.filled(5, null); // 5 slots fijos (algunos pueden ser null)
   List<Card> personalDeck = []; // Cartas boca abajo del jugador
   int penalties = 0;
   bool hasShoutedUno = false;
@@ -25,10 +25,10 @@ class Player {
     'id': id,
     'alias': alias,
     'avatar': avatar,
-    'handSize': hand.length,
+    'handSize': hand.where((c) => c != null).length,
     'personalDeckSize': personalDeck.length,
     'penalties': penalties,
     'isEliminated': isEliminated,
-    if (includeHand) 'hand': hand.map((c) => c.toJson()).toList(),
+    if (includeHand) 'hand': hand.map((c) => c?.toJson()).toList(), // Envía nulls también
   };
 }

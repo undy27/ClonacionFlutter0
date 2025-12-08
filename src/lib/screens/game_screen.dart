@@ -914,8 +914,9 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildHandCard(int index, List<Carta> hand, double w, double h, {int maxChars = 5, bool useVariableFont = true}) {
-    if (index >= hand.length) {
+  Widget _buildHandCard(int index, List<Carta?> hand, double w, double h, {int maxChars = 5, bool useVariableFont = true}) {
+    // Check if slot is empty (null or out of bounds)
+    if (index >= hand.length || hand[index] == null) {
       // Empty slot - Drop target for drawing cards
       return DragTarget<String>(
         builder: (context, candidateData, rejectedData) {
@@ -943,7 +944,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     
-    final carta = hand[index];
+    final carta = hand[index]!; // Safe because we checked above
     
     // Deterministic random rotation based on card hash so it doesn't jitter on rebuilds
     final random = Random(carta.hashCode);
@@ -1143,7 +1144,7 @@ class _GameScreenState extends State<GameScreen> {
 
     // Check if player can draw
     final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
-    final myHandSize = onlineProvider.myHand.length;
+    final myHandSize = onlineProvider.myHand.where((c) => c != null).length;
     final canDraw = count > 0 && myHandSize < 5 && !_isPenaltyActive;
 
     stackChildren.add(

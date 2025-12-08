@@ -120,8 +120,11 @@ class GameRoom {
         remainingCards--;
       }
       
-      // Las primeras 5 cartas van a la mano visible (boca arriba)
-      player.hand = _drawCards(5);
+      // Las primeras 5 cartas van a la mano visible (slots 0-4)
+      List<Card> initialHand = _drawCards(5);
+      for (int i = 0; i < initialHand.length; i++) {
+        player.hand[i] = initialHand[i];
+      }
       // El resto va al mazo personal (boca abajo)
       player.personalDeck = _drawCards(cardsForThisPlayer - 5);
       
@@ -146,8 +149,13 @@ class GameRoom {
     
     if (player.isEliminated) return;
 
-    if (cardIndex < 0 || cardIndex >= player.hand.length) {
+    if (cardIndex < 0 || cardIndex >= 5) {
       _sendError(player, 'Índice de carta inválido');
+      return;
+    }
+
+    if (player.hand[cardIndex] == null) {
+      _sendError(player, 'Slot de carta vacío');
       return;
     }
 
@@ -161,7 +169,7 @@ class GameRoom {
       return;
     }
 
-    Card cardToPlay = player.hand[cardIndex];
+    Card cardToPlay = player.hand[cardIndex]!; // Ya validamos que no es null
     Card topCard = discardPiles[pileIndex].last;
 
     // Validar si el descarte es válido
@@ -195,8 +203,9 @@ class GameRoom {
     // Obtener detalles del match para animaciones
     final matchDetails = CardValidator.getMatchDetails(cardToPlay, topCard);
 
-    // Descarte válido
-    Card card = player.hand.removeAt(cardIndex);
+    // Descarte válido - poner slot a null
+    Card card = player.hand[cardIndex]!;
+    player.hand[cardIndex] = null;
     discardPiles[pileIndex].add(card);
 
     print('[Room $id] ${player.alias} played VALID card on pile $pileIndex');
@@ -208,7 +217,7 @@ class GameRoom {
     // El cliente debe solicitar DRAW_CARD.
 
     // Verificar si el jugador ganó (sin cartas en mano Y sin mazo personal)
-    if (player.hand.isEmpty && player.personalDeck.isEmpty) {
+    if (player.hand.every((c) => c == null) && player.personalDeck.isEmpty) {
       _endGame(playerId);
       return;
     }
@@ -255,7 +264,16 @@ class GameRoom {
     
     if (player.isEliminated) return;
 
-    if (player.hand.length >= 5) {
+    // Buscar primer slot vacío
+    int? emptySlot;
+    for (int i = 0; i < 5; i++) {
+      if (player.hand[i] == null) {
+        emptySlot = i;
+        break;
+      }
+    }
+
+    if (emptySlot == null) {
        _sendError(player, 'Tu mano está llena');
        return;
     }
@@ -266,9 +284,9 @@ class GameRoom {
     }
 
     Card newCard = player.personalDeck.removeAt(0);
-    player.hand.add(newCard);
+    player.hand[emptySlot] = newCard;
     
-    print('[Room $id] ${player.alias} drew card (MANUAL) from personal deck (${player.personalDeck.length} remaining)');
+    print('[Room $id] ${player.alias} drew card (MANUAL) to slot $emptySlot from personal deck (${player.personalDeck.length} remaining)');
     _broadcastGameState();
   }
 

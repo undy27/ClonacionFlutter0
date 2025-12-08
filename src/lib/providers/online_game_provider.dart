@@ -17,7 +17,7 @@ class OnlineGameProvider with ChangeNotifier {
   Usuario? _currentUser;
   
   // Game state from server
-  List<Carta> _myHand = [];
+  List<Carta?> _myHand = [];
   List<List<Carta>> _discardPiles = [[], [], [], []];
   List<PlayerInfo> _players = [];
   int _remainingDeckSize = 0;
@@ -50,7 +50,7 @@ class OnlineGameProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get currentRoomId => _currentRoomId;
   
-  List<Carta> get myHand => _myHand;
+  List<Carta?> get myHand => _myHand;
   List<List<Carta>> get discardPiles => _discardPiles;
   List<PlayerInfo> get players => _players;
   int get remainingDeckSize => _remainingDeckSize;
