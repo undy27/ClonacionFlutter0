@@ -128,7 +128,7 @@ class GameRoom {
       // El resto va al mazo personal (boca abajo)
       player.personalDeck = _drawCards(cardsForThisPlayer - 5);
       
-      print('[Room $id] ${player.alias}: ${player.hand.length} visible, ${player.personalDeck.length} face-down');
+      print('[Room $id] ${player.alias}: ${player.hand.where((c) => c != null).length} visible, ${player.personalDeck.length} face-down');
     }
 
     print('[Room $id] Remaining deck: ${remainingDeck.length} cards');
@@ -309,12 +309,12 @@ class GameRoom {
         'id': p.id,
         'alias': p.alias,
         'avatar': p.avatar,
-        'handSize': p.hand.length,
+        'handSize': p.hand.where((c) => c != null).length,
         'personalDeckSize': p.personalDeck.length,
         'penalties': p.penalties,
         'isEliminated': p.isEliminated,
       }).toList(),
-      'myHand': player.hand.map((c) => c.toJson()).toList(),
+      'myHand': player.hand.map((c) => c?.toJson()).toList(),
       'discardPiles': discardPiles.map((pile) => 
         pile.map((c) => c.toJson()).toList()
       ).toList(),
