@@ -89,6 +89,12 @@ class OnlineGameProvider with ChangeNotifier {
         case 'ROOM_CREATED':
           _currentRoomId = message['roomId'] as String;
           debugPrint('[OnlineGameProvider] Room created: $_currentRoomId');
+          
+          // Auto-join the room we just created
+          if (_currentUser != null) {
+            debugPrint('[OnlineGameProvider] Auto-joining created room');
+            joinRoom(_currentRoomId!, _currentUser!.id, _currentUser!.alias);
+          }
           notifyListeners();
           break;
           
