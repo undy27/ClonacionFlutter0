@@ -1019,10 +1019,10 @@ class _GameScreenState extends State<GameScreen> {
                 borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                    offset: Offset(0, 10), // Shadow below the card
+                    color: Colors.black.withOpacity(0.8),
+                    blurRadius: 12,
+                    spreadRadius: 4,
+                    offset: Offset(0, 15), // Stronger shadow below the card
                   ),
                 ],
               ),
@@ -1180,10 +1180,10 @@ class _GameScreenState extends State<GameScreen> {
                 borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                    offset: Offset(0, 10), // Shadow below the card
+                    color: Colors.black.withOpacity(0.8),
+                    blurRadius: 12,
+                    spreadRadius: 4,
+                    offset: Offset(0, 15), // Stronger shadow below the card
                   ),
                 ],
               ),
