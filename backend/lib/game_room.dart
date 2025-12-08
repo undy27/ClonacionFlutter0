@@ -204,12 +204,8 @@ class GameRoom {
     // Enviar evento de carta jugada para animaciones
     _broadcastCardPlayed(player, card, pileIndex, matchDetails);
 
-    // Voltear una carta del mazo personal si hay
-    if (player.personalDeck.isNotEmpty) {
-      Card newCard = player.personalDeck.removeAt(0);
-      player.hand.add(newCard);
-      print('[Room $id] ${player.alias} drew card from personal deck (${player.personalDeck.length} remaining)');
-    }
+    // Robo manual: Ya no se voltea carta automáticamente.
+    // El cliente debe solicitar DRAW_CARD.
 
     // Verificar si el jugador ganó (sin cartas en mano Y sin mazo personal)
     if (player.hand.isEmpty && player.personalDeck.isEmpty) {
@@ -253,19 +249,26 @@ class GameRoom {
   }
 
   void handleDrawCard(String playerId) {
+    if (status != GameStatus.playing) return;
+    
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
     
     if (player.isEliminated) return;
 
-    if (remainingDeck.isEmpty) {
-      _sendError(player, 'No hay más cartas en el mazo');
-      return;
+    if (player.hand.length >= 5) {
+       _sendError(player, 'Tu mano está llena');
+       return;
+    }
+    
+    if (player.personalDeck.isEmpty) {
+       _sendError(player, 'Tu mazo está vacío');
+       return;
     }
 
-    List<Card> drawn = _drawCards(1);
-    player.hand.addAll(drawn);
+    Card newCard = player.personalDeck.removeAt(0);
+    player.hand.add(newCard);
     
-    print('[Room $id] ${player.alias} drew a card');
+    print('[Room $id] ${player.alias} drew card (MANUAL) from personal deck (${player.personalDeck.length} remaining)');
     _broadcastGameState();
   }
 

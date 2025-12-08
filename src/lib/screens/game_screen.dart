@@ -915,12 +915,32 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHandCard(int index, List<Carta> hand, double w, double h, {int maxChars = 5, bool useVariableFont = true}) {
     if (index >= hand.length) {
-      // Empty slot - invisible
-      return SizedBox(
-        width: w,
-        height: h,
+      // Empty slot - Drop target for drawing cards
+      return DragTarget<String>(
+        builder: (context, candidateData, rejectedData) {
+           bool isHovered = candidateData.isNotEmpty;
+           return Container(
+              width: w,
+              height: h,
+              decoration: BoxDecoration(
+                color: isHovered ? Colors.white.withOpacity(0.15) : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: isHovered ? Border.all(color: Colors.white.withOpacity(0.5), width: 1) : null,
+              ),
+              child: isHovered 
+                  ? Center(child: Icon(Icons.download_rounded, color: Colors.white.withOpacity(0.7), size: 32)) 
+                  : null,
+           );
+        },
+        onWillAccept: (data) => data == 'deck_card',
+        onAccept: (data) {
+           debugPrint('[GameScreen] Drawing card to hand index $index');
+           Provider.of<OnlineGameProvider>(context, listen: false).drawCard();
+           SystemSound.play(SystemSoundType.click); 
+        }
       );
     }
+
     
     final carta = hand[index];
     
@@ -929,45 +949,82 @@ class _GameScreenState extends State<GameScreen> {
     final angleDegrees = -3 + random.nextDouble() * 6; // -3 to 3 degrees
     final angleRadians = angleDegrees * (pi / 180);
     
-    return Draggable(
-      maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
-      data: carta,
-      feedback: Transform.rotate(
-        angle: angleRadians,
-        child: Material(
-          color: Colors.transparent,
-          child: CartaWidget(
-            carta: carta,
-            width: w * 1.1,
-            height: h * 1.1,
-            maxCharsInBoard: maxChars,
-            useVariableFont: useVariableFont,
+    return TweenAnimationBuilder(
+      key: ValueKey('card_${index}_${carta.hashCode}'),
+      duration: const Duration(milliseconds: 600),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, double value, child) {
+        if (value >= 1.0) return child!;
+        
+        final isBack = value < 0.5;
+        final rotation = (1.0 - value) * pi;
+        
+        return Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.001)
+            ..rotateY(rotation),
+          child: isBack
+              ? Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()..rotateY(pi),
+                  child: Container(
+                    width: w, 
+                    height: h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: Image.asset('assets/reverso_carta.png', fit: BoxFit.fill),
+                    ),
+                  ),
+                )
+              : child,
+        );
+      },
+      child: Draggable(
+        maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
+        data: carta,
+        feedback: Transform.rotate(
+          angle: angleRadians,
+          child: Material(
+            color: Colors.transparent,
+            child: CartaWidget(
+              carta: carta,
+              width: w * 1.1,
+              height: h * 1.1,
+              maxCharsInBoard: maxChars,
+              useVariableFont: useVariableFont,
+            ),
           ),
         ),
-      ),
-      childWhenDragging: ColorFiltered(
-        colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.srcATop), // Darken effect instead of real opacity
-        child: Transform.rotate(
-          angle: angleRadians,
-          child: CartaWidget(
+        childWhenDragging: ColorFiltered(
+          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.srcATop),
+          child: Transform.rotate(
+            angle: angleRadians,
+            child: CartaWidget(
+              carta: carta,
+              width: w,
+              height: h,
+              maxCharsInBoard: maxChars,
+              useVariableFont: useVariableFont,
+            ),
+          ),
+        ),
+        child: CartaWidget(
             carta: carta,
             width: w,
             height: h,
+            onTap: () {},
             maxCharsInBoard: maxChars,
             useVariableFont: useVariableFont,
           ),
-        ),
       ),
-      child: CartaWidget(
-          carta: carta,
-          width: w,
-          height: h,
-          onTap: () {
-            // Optional: Select logic
-          },
-          maxCharsInBoard: maxChars,
-          useVariableFont: useVariableFont,
-        ),
     );
   }
 
@@ -1040,54 +1097,67 @@ class _GameScreenState extends State<GameScreen> {
     final angleDegreesTop = -3 + randomTop.nextDouble() * 6;
     final angleRadiansTop = angleDegreesTop * (pi / 180);
 
-    stackChildren.add(
-        GestureDetector(
-          onTap: () {
-            // TODO: Implementar robar carta
-            print('Robar carta');
-          },
-            child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                    buildCardBack(),
-                    
-                    // Count Badge
-                    Positioned(
-                        top: -w * 0.08,
-                        right: -w * 0.08,
-                        child: Container(
-                          padding: EdgeInsets.all(w * 0.06),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: w * 0.025),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: w * 0.02,
-                                offset: Offset(w * 0.01, w * 0.01),
-                              ),
-                            ],
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: w * 0.25,
-                            minHeight: w * 0.25,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$count',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: w * 0.15,
-                              ),
-                            ),
-                          ),
-                        ),
+    // Build top card visual (Back + Badge)
+    Widget topCardVisual = Stack(
+        clipBehavior: Clip.none,
+        children: [
+            buildCardBack(),
+            
+            // Count Badge
+            Positioned(
+                top: -w * 0.08,
+                right: -w * 0.08,
+                child: Container(
+                  padding: EdgeInsets.all(w * 0.06),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: w * 0.025),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: w * 0.02,
+                        offset: Offset(w * 0.01, w * 0.01),
+                      ),
+                    ],
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: w * 0.25,
+                    minHeight: w * 0.25,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: w * 0.15,
+                      ),
                     ),
-                ]
+                  ),
+                ),
             ),
-        )
+        ]
+    );
+
+    // Check if player can draw
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    final myHandSize = onlineProvider.myHand.length;
+    final canDraw = count > 0 && myHandSize < 5 && !_isPenaltyActive;
+
+    stackChildren.add(
+        canDraw ? Draggable<String>(
+          data: 'deck_card',
+          feedback: Material(
+            color: Colors.transparent,
+            child: Transform.rotate(
+               angle: angleRadiansTop,
+               child: SizedBox(width: w * 1.1, height: h * 1.1, child: buildCardBack()) // Increase feedback size
+            ),
+          ),
+          childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
+          child: topCardVisual,
+        ) : topCardVisual
     );
     
     return Stack(
