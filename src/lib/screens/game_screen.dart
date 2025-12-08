@@ -975,8 +975,8 @@ class _GameScreenState extends State<GameScreen> {
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
         
-        // Rotate from 90 degrees to 0 (completing the flip started during drag)
-        final rotation = (1.0 - value) * (pi / 2);
+        // Rotate from 30 degrees to 0 (completing the flip started during drag)
+        final rotation = (1.0 - value) * (pi / 6);
         
         return Transform(
           alignment: Alignment.center,
@@ -1153,7 +1153,7 @@ class _GameScreenState extends State<GameScreen> {
               alignment: Alignment.center,
               transform: Matrix4.identity()
                 ..setEntry(3, 2, 0.001) // perspective
-                ..rotateY(pi / 2) // 90 degrees - card perpendicular to viewer
+                ..rotateY(pi / 6) // 30 degrees - card tilted but still visible
                 ..rotateZ(angleRadiansTop), // maintain original tilt
               child: SizedBox(
                 width: w * 1.1, 
