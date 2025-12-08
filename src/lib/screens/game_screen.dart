@@ -970,14 +970,16 @@ class _GameScreenState extends State<GameScreen> {
     
     return TweenAnimationBuilder(
       key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 600), // Smooth but not too slow
+      duration: const Duration(milliseconds: 5000), // 5 seconds to see animation clearly
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
         
-        // Simple flip animation: rotate from -180° to 0°
-        final isBack = value < 0.5;
-        final rotation = (1.0 - value) * (-pi); // -180° to 0°
+        // Flip from -140° (back tilted 40°) to 0° (front flat)
+        final rotation = -(7 * pi / 9) * (1.0 - value); // -140° to 0°
+        
+        // Show back when rotation < -90° (perpendicular), front when rotation >= -90°
+        final isBack = rotation < -(pi / 2);
         
         return Transform(
           alignment: Alignment.center,
