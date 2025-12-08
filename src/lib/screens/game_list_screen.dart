@@ -136,11 +136,15 @@ class _GameListScreenState extends State<GameListScreen> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () async {
-                    if (provider.isConnected) {
+                    if (provider.isConnected && provider.currentUser != null) {
                       _timer?.cancel(); // Stop polling
                       
                       provider.leaveRoom();
-                      provider.joinRoom(room['id'], "", ""); 
+                      provider.joinRoom(
+                        room['id'], 
+                        provider.currentUser!.id, 
+                        provider.currentUser!.alias
+                      ); 
                       
                       await Navigator.pushNamed(context, '/waiting_room');
                       
@@ -175,9 +179,8 @@ class _GameListScreenState extends State<GameListScreen> {
                    provider.leaveRoom();
                    
                    final roomId = DateTime.now().millisecondsSinceEpoch.toString();
+                   // createOnlineRoom now auto-joins via ROOM_CREATED handler
                    provider.createOnlineRoom(roomId, nombre, jugadores);
-                   // Join immediately
-                   provider.joinRoom(roomId, "", ""); 
                    
                    // Stop polling
                    _timer?.cancel();
@@ -185,7 +188,7 @@ class _GameListScreenState extends State<GameListScreen> {
                    // Navigate to waiting room
                    await Navigator.of(screenContext).pushNamed('/waiting_room');
                    
-                   // Restart polling when back
+                   //Restart polling when back
                    if (mounted) {
                      _refreshList();
                      _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refreshList());
