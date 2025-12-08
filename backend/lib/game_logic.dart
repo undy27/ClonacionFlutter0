@@ -103,7 +103,44 @@ class GameLogic {
     while (finalResults.length > 156) {
       finalResults.removeLast();
     }
-    finalResults.shuffle();
+    // Ensure no card has duplicate results in its inferior row
+    bool validDistribution = false;
+    int shuffleAttempts = 0;
+    
+    while (!validDistribution && shuffleAttempts < 100) {
+      finalResults.shuffle(random);
+      validDistribution = true;
+      for (int i = 0; i < 52; i++) {
+        int a = finalResults[i * 3];
+        int b = finalResults[i * 3 + 1];
+        int c = finalResults[i * 3 + 2];
+        if (a == b || a == c || b == c) {
+          validDistribution = false;
+          break;
+        }
+      }
+      shuffleAttempts++;
+    }
+
+    if (!validDistribution) {
+       print('[GameLogic] WARNING: Forced swap to fix duplicates after $shuffleAttempts shuffles.');
+       // Emergency fix: Linear scan swap
+       for (int i = 0; i < 52; i++) {
+          int i1 = i * 3;
+          int i2 = i * 3 + 1;
+          int i3 = i * 3 + 2;
+          
+          if (finalResults[i1] == finalResults[i2] || 
+              finalResults[i1] == finalResults[i3] || 
+              finalResults[i2] == finalResults[i3]) {
+              
+               int swapTarget = random.nextInt(finalResults.length);
+               int temp = finalResults[i3];
+               finalResults[i3] = finalResults[swapTarget];
+               finalResults[swapTarget] = temp;
+          }
+       }
+    }
 
     // Assemble Cards
     for (int i = 0; i < 52; i++) {
