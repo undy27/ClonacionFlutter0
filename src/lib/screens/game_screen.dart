@@ -1023,18 +1023,10 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
         ),
-        childWhenDragging: ColorFiltered(
-          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.srcATop),
-          child: Transform.rotate(
-            angle: angleRadians,
-            child: CartaWidget(
-              carta: carta,
-              width: w,
-              height: h,
-              maxCharsInBoard: maxChars,
-              useVariableFont: useVariableFont,
-            ),
-          ),
+        childWhenDragging: SizedBox(
+          width: w,
+          height: h,
+          // Empty space where the card was
         ),
         child: CartaWidget(
             carta: carta,
