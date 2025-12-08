@@ -970,14 +970,14 @@ class _GameScreenState extends State<GameScreen> {
     
     return TweenAnimationBuilder(
       key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 4000), // 4 seconds for slow, visible flip
+      duration: const Duration(milliseconds: 600), // Smooth but not too slow
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
         
-        // Complete flip from -180 to 0 degrees (rotating left, same direction as drag)
-        final isBack = value < 0.5; // Show back in first half
-        final rotation = (1.0 - value) * (-pi); // Negative for left rotation
+        // Simple flip animation: rotate from -180° to 0°
+        final isBack = value < 0.5;
+        final rotation = (1.0 - value) * (-pi); // -180° to 0°
         
         return Transform(
           alignment: Alignment.center,
@@ -987,7 +987,7 @@ class _GameScreenState extends State<GameScreen> {
           child: isBack
               ? Transform(
                   alignment: Alignment.center,
-                  transform: Matrix4.identity()..rotateY(-pi), // Flip the back side (negative for left rotation)
+                  transform: Matrix4.identity()..rotateY(-pi),
                   child: Container(
                     width: w, 
                     height: h,
@@ -1004,7 +1004,7 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   ),
                 )
-              : child, // Show front in second half
+              : child,
         );
       },
       child: Draggable(
