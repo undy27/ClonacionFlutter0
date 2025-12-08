@@ -1022,7 +1022,7 @@ class _GameScreenState extends State<GameScreen> {
                     color: Colors.black.withOpacity(0.8),
                     blurRadius: 12,
                     spreadRadius: 4,
-                    offset: Offset(0, 15), // Stronger shadow below the card
+                    offset: Offset(12, 8), // Shadow to right and down (light from left)
                   ),
                 ],
               ),
@@ -1183,7 +1183,7 @@ class _GameScreenState extends State<GameScreen> {
                     color: Colors.black.withOpacity(0.8),
                     blurRadius: 12,
                     spreadRadius: 4,
-                    offset: Offset(0, 15), // Stronger shadow below the card
+                    offset: Offset(12, 8), // Shadow to right and down (light from left)
                   ),
                 ],
               ),
