@@ -1014,12 +1014,25 @@ class _GameScreenState extends State<GameScreen> {
           angle: angleRadians,
           child: Material(
             color: Colors.transparent,
-            child: CartaWidget(
-              carta: carta,
-              width: w * 1.1,
-              height: h * 1.1,
-              maxCharsInBoard: maxChars,
-              useVariableFont: useVariableFont,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: Offset(0, 10), // Shadow below the card
+                  ),
+                ],
+              ),
+              child: CartaWidget(
+                carta: carta,
+                width: w * 1.1,
+                height: h * 1.1,
+                maxCharsInBoard: maxChars,
+                useVariableFont: useVariableFont,
+              ),
             ),
           ),
         ),
@@ -1162,16 +1175,29 @@ class _GameScreenState extends State<GameScreen> {
           data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
-            child: Transform(
-              alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.001) // perspective
-                ..rotateY(2 * pi / 9) // 40 degrees - pronounced tilt during drag
-                ..rotateZ(angleRadiansTop), // maintain original tilt
-              child: SizedBox(
-                width: w * 1.1, 
-                height: h * 1.1, 
-                child: buildCardBack()
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: Offset(0, 10), // Shadow below the card
+                  ),
+                ],
+              ),
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001) // perspective
+                  ..rotateY(2 * pi / 9) // 40 degrees - pronounced tilt during drag
+                  ..rotateZ(angleRadiansTop), // maintain original tilt
+                child: SizedBox(
+                  width: w * 1.1, 
+                  height: h * 1.1, 
+                  child: buildCardBack()
+                ),
               ),
             ),
           ),
