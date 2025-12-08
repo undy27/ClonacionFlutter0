@@ -54,6 +54,7 @@ class _CardThemeScreenState extends State<CardThemeScreen> {
 
   // Sample card for preview
   Carta get _sampleCard => Carta(
+        id: 'sample_theme',
         multiplicaciones: [
           [3, 7],
           [10, 4],

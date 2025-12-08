@@ -190,6 +190,7 @@ class GameLogic {
         row3.add(finalResultados[i*3+2]);
 
         baraja.add(Carta(
+            id: 'offline_$i',
             multiplicaciones: row1,
             division: row2,
             resultados: row3

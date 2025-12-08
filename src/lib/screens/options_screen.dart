@@ -486,6 +486,7 @@ class OptionsScreen extends StatelessWidget {
                                             child: IgnorePointer( // Ignore taps on the card itself so the container handles it
                                               child: CartaWidget(
                                                 carta: Carta(
+                                                  id: 'sample_option',
                                                   multiplicaciones: [[3, 7], [10, 4], [6, 6]],
                                                   division: [24, 8],
                                                   resultados: [21, 40, 36],
