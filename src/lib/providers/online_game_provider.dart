@@ -185,6 +185,7 @@ class OnlineGameProvider with ChangeNotifier {
   }
 
   void joinRoom(String roomId, String playerId, String alias) {
+    print('[OnlineGameProvider] joinRoom: roomId=$roomId, isConnected=$isConnected, _currentUser is ${_currentUser != null ? "set (id=${_currentUser!.id}, alias=${_currentUser!.alias})" : "null"}');
     if (!isConnected || _currentUser == null) {
       _errorMessage = 'Debes estar conectado y autenticado';
       notifyListeners();
