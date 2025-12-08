@@ -975,15 +975,36 @@ class _GameScreenState extends State<GameScreen> {
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
         
-        // Rotate from 30 degrees to 0 (completing the flip started during drag)
-        final rotation = (1.0 - value) * (pi / 6);
+        // Complete flip from 180 to 0 degrees for smooth transition
+        final isBack = value < 0.5; // Show back in first half
+        final rotation = (1.0 - value) * pi; // Full 180 degree rotation
         
         return Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.001)
             ..rotateY(rotation),
-          child: child, // Always show front side as we're completing the flip
+          child: isBack
+              ? Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()..rotateY(pi), // Flip the back side
+                  child: Container(
+                    width: w, 
+                    height: h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: Image.asset('assets/reverso_carta.png', fit: BoxFit.fill),
+                    ),
+                  ),
+                )
+              : child, // Show front in second half
         );
       },
       child: Draggable(
@@ -1153,7 +1174,7 @@ class _GameScreenState extends State<GameScreen> {
               alignment: Alignment.center,
               transform: Matrix4.identity()
                 ..setEntry(3, 2, 0.001) // perspective
-                ..rotateY(pi / 6) // 30 degrees - card tilted but still visible
+                ..rotateY(pi / 12) // 15 degrees - subtle tilt during drag
                 ..rotateZ(angleRadiansTop), // maintain original tilt
               child: SizedBox(
                 width: w * 1.1, 
