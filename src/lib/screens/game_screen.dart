@@ -970,7 +970,7 @@ class _GameScreenState extends State<GameScreen> {
     
     return TweenAnimationBuilder(
       key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 5000), // 5 seconds to see animation clearly
+      duration: const Duration(milliseconds: 200), // Fast, snappy flip
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
