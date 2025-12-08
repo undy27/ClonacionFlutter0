@@ -970,7 +970,7 @@ class _GameScreenState extends State<GameScreen> {
     
     return TweenAnimationBuilder(
       key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 300), // Quick, snappy flip
+      duration: const Duration(milliseconds: 200), // Very quick flip
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
@@ -1174,7 +1174,7 @@ class _GameScreenState extends State<GameScreen> {
               alignment: Alignment.center,
               transform: Matrix4.identity()
                 ..setEntry(3, 2, 0.001) // perspective
-                ..rotateY(pi / 6) // 30 degrees - visible tilt during drag
+                ..rotateY(2 * pi / 9) // 40 degrees - pronounced tilt during drag
                 ..rotateZ(angleRadiansTop), // maintain original tilt
               child: SizedBox(
                 width: w * 1.1, 
