@@ -39,6 +39,22 @@ class _GameScreenState extends State<GameScreen> {
   String? _penaltyText;
   Color _penaltyColor = Colors.red;
   int _penaltyRenderKey = 0; // To force animation rebuild
+  
+  // Drawing animation state
+  Set<int> _flippingSlots = {}; // Slots that are currently flipping
+  
+  // Drag state for custom card flipping
+  bool _isDragging = false;
+  Offset? _dragPosition;
+  OverlayEntry? _dragOverlay;
+  final Map<int, GlobalKey> _slotKeys = {
+    0: GlobalKey(),
+    1: GlobalKey(),
+    2: GlobalKey(),  
+    3: GlobalKey(),
+    4: GlobalKey(),
+  };
+  GlobalKey? _deckKey = GlobalKey();
 
   @override
   void initState() {
@@ -954,40 +970,20 @@ class _GameScreenState extends State<GameScreen> {
     
     return TweenAnimationBuilder(
       key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400), // Faster flip
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
         if (value >= 1.0) return child!;
         
-        final isBack = value < 0.5;
-        final rotation = (1.0 - value) * pi;
+        // Rotate from 90 degrees to 0 (completing the flip started during drag)
+        final rotation = (1.0 - value) * (pi / 2);
         
         return Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.001)
             ..rotateY(rotation),
-          child: isBack
-              ? Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()..rotateY(pi),
-                  child: Container(
-                    width: w, 
-                    height: h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(9),
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [
-                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: Image.asset('assets/reverso_carta.png', fit: BoxFit.fill),
-                    ),
-                  ),
-                )
-              : child,
+          child: child, // Always show front side as we're completing the flip
         );
       },
       child: Draggable(
@@ -1153,9 +1149,17 @@ class _GameScreenState extends State<GameScreen> {
           data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
-            child: Transform.rotate(
-               angle: angleRadiansTop,
-               child: SizedBox(width: w * 1.1, height: h * 1.1, child: buildCardBack()) // Increase feedback size
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001) // perspective
+                ..rotateY(pi / 2) // 90 degrees - card perpendicular to viewer
+                ..rotateZ(angleRadiansTop), // maintain original tilt
+              child: SizedBox(
+                width: w * 1.1, 
+                height: h * 1.1, 
+                child: buildCardBack()
+              ),
             ),
           ),
           childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
