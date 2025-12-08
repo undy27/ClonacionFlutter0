@@ -951,7 +951,7 @@ class _GameScreenState extends State<GameScreen> {
     final angleRadians = angleDegrees * (pi / 180);
     
     return TweenAnimationBuilder(
-      key: ValueKey('card_${index}_${carta.hashCode}'),
+      key: ValueKey('card_${carta.id}'),
       duration: const Duration(milliseconds: 600),
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, double value, child) {
