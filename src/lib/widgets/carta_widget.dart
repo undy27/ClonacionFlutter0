@@ -50,8 +50,8 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
     );
 
     _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.75).chain(CurveTween(curve: Curves.easeOutExpo)), weight: 25),
-      TweenSequenceItem(tween: Tween(begin: 1.75, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)), weight: 75),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25).chain(CurveTween(curve: Curves.easeOutExpo)), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)), weight: 75),
     ]).animate(_controller!);
 
     _colorAnimationWhite = TweenSequence<Color?>([
