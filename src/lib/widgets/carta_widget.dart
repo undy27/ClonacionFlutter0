@@ -140,16 +140,13 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppTheme.border, width: 1),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-            child: widget.tema == 'clasico' ? _buildClasico() : 
-                   AnimatedBuilder(
-                     animation: _controller!,
-                     builder: (context, child) => _buildModerno(),
-                   ),
-          ),
+        child: MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: widget.tema == 'clasico' ? _buildClasico() : 
+                 AnimatedBuilder(
+                   animation: _controller!,
+                   builder: (context, child) => _buildModerno(),
+                 ),
         ),
       ),
     );
@@ -278,6 +275,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
         }
 
         return Stack(
+          clipBehavior: Clip.none, // Allow overflow for animations
           children: [
             // Background SVG
             SizedBox.expand(
