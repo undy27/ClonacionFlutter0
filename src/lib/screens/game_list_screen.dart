@@ -153,7 +153,7 @@ class _GameListScreenState extends State<GameListScreen> {
                   }
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
@@ -164,7 +164,7 @@ class _GameListScreenState extends State<GameListScreen> {
                     boxShadow: AppTheme.hardShadow,
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -183,7 +183,7 @@ class _GameListScreenState extends State<GameListScreen> {
                             // Delete button if user is creator
                             if (room['creatorId'] == provider.currentUser?.id)
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
                                 onPressed: () async {
                                   final confirmed = await showDialog<bool>(
                                     context: context,
@@ -212,13 +212,13 @@ class _GameListScreenState extends State<GameListScreen> {
                           ],
                         ),
                         
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         
                         // Player count with visual bar
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: AppTheme.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
@@ -230,10 +230,10 @@ class _GameListScreenState extends State<GameListScreen> {
                               child: Icon(
                                 Icons.people,
                                 color: AppTheme.primary,
-                                size: 24,
+                                size: 20,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +243,7 @@ class _GameListScreenState extends State<GameListScreen> {
                                       Text(
                                         '$playerCount',
                                         style: TextStyle(
-                                          fontSize: 24,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                           color: AppTheme.primary,
                                         ),
@@ -251,7 +251,7 @@ class _GameListScreenState extends State<GameListScreen> {
                                       Text(
                                         ' / $maxPlayers',
                                         style: TextStyle(
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                                         ),
                                       ),
@@ -265,12 +265,12 @@ class _GameListScreenState extends State<GameListScreen> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
                                   // Player fill bar
                                   Stack(
                                     children: [
                                       Container(
-                                        height: 8,
+                                        height: 6,
                                         decoration: BoxDecoration(
                                           color: isDark ? Colors.grey[800] : Colors.grey[300],
                                           borderRadius: BorderRadius.circular(4),
@@ -279,7 +279,7 @@ class _GameListScreenState extends State<GameListScreen> {
                                       FractionallySizedBox(
                                         widthFactor: fillPercentage,
                                         child: Container(
-                                          height: 8,
+                                          height: 6,
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
@@ -299,12 +299,12 @@ class _GameListScreenState extends State<GameListScreen> {
                           ],
                         ),
                         
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
                         
                         // Creator info
                         if (room['creatorId'] != null)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
                               children: [
                                 Icon(Icons.person_outline, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
@@ -330,7 +330,7 @@ class _GameListScreenState extends State<GameListScreen> {
                         
                         // Rating requirement with colorful badge
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -349,7 +349,7 @@ class _GameListScreenState extends State<GameListScreen> {
                               Icon(
                                 Icons.emoji_events,
                                 color: Colors.amber.shade700,
-                                size: 24,
+                                size: 20,
                               ),
                               const SizedBox(width: 8),
                               Text(
