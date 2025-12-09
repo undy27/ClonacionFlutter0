@@ -32,6 +32,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/textos/
+    - assets/ovejas/
     - assets/avatars/androide/
     - assets/avatars/ainara/
     - assets/avatars/cientifico/
