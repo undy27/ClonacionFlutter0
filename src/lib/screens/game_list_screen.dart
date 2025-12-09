@@ -180,43 +180,13 @@ class _GameListScreenState extends State<GameListScreen> {
                                 ),
                               ),
                             ),
-                            // Delete button if user is creator
-                            if (room['creatorId'] == provider.currentUser?.id)
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                onPressed: () async {
-                                  final confirmed = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Eliminar partida'),
-                                      content: const Text('¿Estás seguro de que quieres eliminar esta partida?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
-                                          child: const Text('Cancelar'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                          child: const Text('Eliminar'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  
-                                  if (confirmed == true) {
-                                    await provider.deleteRoom(room['id']);
-                                  }
-                                },
-                                tooltip: 'Eliminar partida',
-                              ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: isFull ? Colors.red : AppTheme.secondary,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isFull ? Colors.red[700]! : AppTheme.secondary[700]!,
+                                  color: isFull ? Colors.red : Colors.green,
                                   width: 2,
                                 ),
                               ),
@@ -397,10 +367,6 @@ class _GameListScreenState extends State<GameListScreen> {
                       ],
                     ),
                   ),
-                ),
-              );
-            },
-          );
                 ),
               );
             },
