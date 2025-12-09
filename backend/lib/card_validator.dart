@@ -82,16 +82,33 @@ class CardValidator {
     final playDiv = _getDivisionResult(cardToPlay.division);
     final topDiv = _getDivisionResult(topCard.division);
 
-    // Verificar multiplicaciones
+    // Verificar multiplicaciones de cardToPlay
     for (int i = 0; i < playMults.length; i++) {
+      // Mult vs Mult
       for (int j = 0; j < topMults.length; j++) {
         if (playMults[i] == topMults[j]) {
           final playPair = cardToPlay.multiplicaciones[i];
           final topPair = topCard.multiplicaciones[j];
           if (!(playPair[0] == topPair[0] && playPair[1] == topPair[1]) &&
               !(playPair[0] == topPair[1] && playPair[1] == topPair[0])) {
-            details['matchedMults']!.add(i);
+            if (!details['matchedMults']!.contains(i)) {
+              details['matchedMults']!.add(i);
+            }
           }
+        }
+      }
+      
+      // Mult vs topDiv
+      if (playMults[i] == topDiv) {
+        if (!details['matchedMults']!.contains(i)) {
+          details['matchedMults']!.add(i);
+        }
+      }
+      
+      // Mult vs topResults
+      if (topCard.resultados.contains(playMults[i])) {
+        if (!details['matchedMults']!.contains(i)) {
+          details['matchedMults']!.add(i);
         }
       }
     }
