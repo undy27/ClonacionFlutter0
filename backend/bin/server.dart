@@ -21,12 +21,21 @@ void main() async {
 
   // List available rooms
   router.get('/rooms', (Request request) {
-    final rooms = roomManager.getAvailableRooms().map((room) => {
-      'id': room.id,
-      'name': room.name,
-      'players': room.players.length,
-      'maxPlayers': room.maxPlayers,
-    }).toList();
+    // Get user rating from query parameter (default 1500 if not provided)
+    final userRatingStr = request.url.queryParameters['rating'];
+    final userRating = userRatingStr != null ? int.tryParse(userRatingStr) ?? 1500 : 1500;
+    
+    // Filter and map rooms
+    final rooms = roomManager.getAvailableRooms()
+        .where((room) => userRating >= room.minRating && userRating <= room.maxRating)
+        .map((room) => {
+          'id': room.id,
+          'name': room.name,
+          'players': room.players.length,
+          'maxPlayers': room.maxPlayers,
+          'minRating': room.minRating,
+          'maxRating': room.maxRating,
+        }).toList();
     
     return Response.ok(
       jsonEncode({'rooms': rooms}),
@@ -122,12 +131,16 @@ void _handleCreateRoom(WebSocketChannel socket, Map<String, dynamic> data, RoomM
   final roomId = data['roomId'] as String;
   final roomName = data['roomName'] as String;
   final maxPlayers = data['maxPlayers'] as int? ?? 4;
+  final minRating = data['minRating'] as int? ?? 0;
+  final maxRating = data['maxRating'] as int? ?? 9999;
 
   try {
     final room = manager.createRoom(
       id: roomId,
       name: roomName,
       maxPlayers: maxPlayers,
+      minRating: minRating,
+      maxRating: maxRating,
     );
 
     socket.sink.add(jsonEncode({

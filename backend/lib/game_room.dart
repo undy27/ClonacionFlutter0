@@ -10,22 +10,27 @@ class GameRoom {
   final String id;
   final String name;
   final int maxPlayers;
+  final int minRating;
+  final int maxRating;
   final DateTime createdAt;
   DateTime lastActivityAt;
   
   List<Player> players = [];
   GameStatus status = GameStatus.waiting;
+  
   // Game state
   List<Card> deck = [];
   List<Card> remainingDeck = [];
   List<List<Card>> discardPiles = [[], [], [], []]; // 4 pilas
+  
   GameRoom({
     required this.id,
     required this.name,
     required this.maxPlayers,
+    this.minRating = 0,
+    this.maxRating = 9999,
   }) : createdAt = DateTime.now(),
        lastActivityAt = DateTime.now();
-  });
 
   void addPlayer(Player player) {
     // Check if player already exists

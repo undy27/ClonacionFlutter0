@@ -130,9 +130,25 @@ class _GameListScreenState extends State<GameListScreen> {
                     room['name'] ?? 'Sala sin nombre',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  subtitle: Text(
-                    'Jugadores: ${room['players']}/${room['maxPlayers']}',
-                    style: const TextStyle(fontSize: 14),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Jugadores: ${room['''players''']}/${room['''maxPlayers''']}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Rating: ${room['''minRating''']} - ${room['''maxRating''']}',
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () async {

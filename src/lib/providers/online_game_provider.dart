@@ -236,7 +236,8 @@ class OnlineGameProvider with ChangeNotifier {
     try {
       final useInternet = _currentUser?.useInternetServer ?? true;
       final baseUrl = ServerConfig.getBaseUrl(useInternet);
-      final response = await http.get(Uri.parse('$baseUrl/rooms'));
+      final userRating = _currentUser?.rating ?? 1500;
+      final response = await http.get(Uri.parse('$baseUrl/rooms?rating=$userRating'));
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

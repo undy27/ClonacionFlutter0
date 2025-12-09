@@ -25,6 +25,8 @@ class RoomManager {
     required String id,
     required String name,
     required int maxPlayers,
+    int minRating = 0,
+    int maxRating = 9999,
   }) {
     if (_rooms.containsKey(id)) {
       throw Exception('Room with id $id already exists');
@@ -34,10 +36,12 @@ class RoomManager {
       id: id,
       name: name,
       maxPlayers: maxPlayers,
+      minRating: minRating,
+      maxRating: maxRating,
     );
     
     _rooms[id] = room;
-    print('[RoomManager] Created room: $id ($name)');
+    print('[RoomManager] Created room: $id ($name) [Rating: $minRating-$maxRating]');
     return room;
   }
 
