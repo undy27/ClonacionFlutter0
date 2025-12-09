@@ -35,10 +35,45 @@ void main() async {
           'maxPlayers': room.maxPlayers,
           'minRating': room.minRating,
           'maxRating': room.maxRating,
+          'creatorId': room.creatorId,
         }).toList();
     
     return Response.ok(
       jsonEncode({'rooms': rooms}),
+      headers: {'Content-Type': 'application/json'},
+    );
+  });
+
+  router.delete('/rooms/<roomId>', (Request request, String roomId) {
+    final userIdStr = request.url.queryParameters['userId'];
+    
+    if (userIdStr == null) {
+      return Response.forbidden(
+        jsonEncode({'error': 'userId required'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+    
+    final room = roomManager.getRoom(roomId);
+    
+    if (room == null) {
+      return Response.notFound(
+        jsonEncode({'error': 'Room not found'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+    
+    if (room.creatorId != userIdStr) {
+      return Response.forbidden(
+        jsonEncode({'error': 'Only the room creator can delete it'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+    
+    roomManager.removeRoom(roomId);
+    
+    return Response.ok(
+      jsonEncode({'success': true}),
       headers: {'Content-Type': 'application/json'},
     );
   });
@@ -133,6 +168,7 @@ void _handleCreateRoom(WebSocketChannel socket, Map<String, dynamic> data, RoomM
   final maxPlayers = data['maxPlayers'] as int? ?? 4;
   final minRating = data['minRating'] as int? ?? 0;
   final maxRating = data['maxRating'] as int? ?? 9999;
+  final creatorId = data['creatorId'] as String?;
 
   try {
     final room = manager.createRoom(
@@ -141,6 +177,7 @@ void _handleCreateRoom(WebSocketChannel socket, Map<String, dynamic> data, RoomM
       maxPlayers: maxPlayers,
       minRating: minRating,
       maxRating: maxRating,
+      creatorId: creatorId,
     );
 
     socket.sink.add(jsonEncode({

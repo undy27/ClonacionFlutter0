@@ -181,7 +181,7 @@ class OnlineGameProvider with ChangeNotifier {
       return;
     }
 
-    _wsService.createRoom(roomId, roomName, maxPlayers);
+    _wsService.createRoom(roomId, roomName, maxPlayers, _currentUser!.id);
   }
 
   void joinRoom(String roomId, String playerId, String alias) {
@@ -263,3 +263,33 @@ class OnlineGameProvider with ChangeNotifier {
     super.dispose();
   }
 }
+
+
+  Future<void> deleteRoom(String roomId) async {
+    if (!isConnected || _currentUser == null) {
+      _errorMessage = 'Debes estar conectado y autenticado';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final useInternet = _currentUser?.useInternetServer ?? true;
+      final baseUrl = ServerConfig.getBaseUrl(useInternet);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/rooms/$roomId?userId=${_currentUser!.id}'),
+      );
+      
+      if (response.statusCode == 200) {
+        // Refresh room list
+        await fetchRooms();
+      } else {
+        final data = jsonDecode(response.body);
+        _errorMessage = data['error'] ?? 'Error al eliminar sala';
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error deleting room: $e');
+      _errorMessage = 'Error al eliminar sala';
+      notifyListeners();
+    }
+  }

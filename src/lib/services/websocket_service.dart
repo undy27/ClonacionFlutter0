@@ -178,12 +178,13 @@ class WebSocketService extends ChangeNotifier {
   }
 
   // High-level methods for game actions
-  void createRoom(String roomId, String roomName, int maxPlayers) {
+  void createRoom(String roomId, String roomName, int maxPlayers, String? creatorId) {
     send({
       'type': 'CREATE_ROOM',
       'roomId': roomId,
       'roomName': roomName,
       'maxPlayers': maxPlayers,
+    'creatorId': creatorId,
     });
   }
 
