@@ -354,9 +354,10 @@ class GameRoom {
       }));
     }
   }
-}
-
 
   void _updateActivity() {
     lastActivityAt = DateTime.now();
   }
+}
+
+
