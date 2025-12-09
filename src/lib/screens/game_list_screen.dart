@@ -216,7 +216,7 @@ class _GameListScreenState extends State<GameListScreen> {
                                 color: isFull ? Colors.red : AppTheme.secondary,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isFull ? Colors.red.shade700 : AppTheme.secondary.shade700,
+                                  color: isFull ? Colors.red[700]! : AppTheme.secondary[700]!,
                                   width: 2,
                                 ),
                               ),

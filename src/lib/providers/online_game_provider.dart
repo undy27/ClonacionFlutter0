@@ -255,16 +255,7 @@ class OnlineGameProvider with ChangeNotifier {
   }
 
   @override
-  void dispose() {
-    _gameStateSubscription?.cancel();
-    _messageSubscription?.cancel();
-    _cardPlayedController.close();
-    _wsService.disconnect();
-    super.dispose();
-  }
-}
-
-
+  
   Future<void> deleteRoom(String roomId) async {
     if (!isConnected || _currentUser == null) {
       _errorMessage = 'Debes estar conectado y autenticado';
@@ -280,7 +271,6 @@ class OnlineGameProvider with ChangeNotifier {
       );
       
       if (response.statusCode == 200) {
-        // Refresh room list
         await fetchRooms();
       } else {
         final data = jsonDecode(response.body);
@@ -293,3 +283,14 @@ class OnlineGameProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void dispose() {
+    _gameStateSubscription?.cancel();
+    _messageSubscription?.cancel();
+    _cardPlayedController.close();
+    _wsService.disconnect();
+    super.dispose();
+  }
+}
+
+
