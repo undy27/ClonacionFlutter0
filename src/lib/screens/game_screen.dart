@@ -280,7 +280,7 @@ class _GameScreenState extends State<GameScreen> {
     // }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFF0D1B2A), // Dark blue poker table felt
       body: Stack(
         children: [
           Padding(
