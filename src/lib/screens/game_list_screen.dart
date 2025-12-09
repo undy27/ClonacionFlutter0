@@ -209,26 +209,6 @@ class _GameListScreenState extends State<GameListScreen> {
                                 },
                                 tooltip: 'Eliminar partida',
                               ),
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isFull ? Colors.red : AppTheme.secondary,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isFull ? Colors.red : Colors.green,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Text(
-                                isFull ? 'LLENA' : 'ABIERTA',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         
