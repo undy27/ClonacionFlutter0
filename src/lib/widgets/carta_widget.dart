@@ -46,7 +46,7 @@ class _CartaWidgetState extends State<CartaWidget> with SingleTickerProviderStat
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 3000), // 3 seconds animation
     );
 
     _scaleAnimation = TweenSequence<double>([
