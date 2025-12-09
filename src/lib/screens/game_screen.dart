@@ -937,18 +937,11 @@ class _GameScreenState extends State<GameScreen> {
       // Empty slot - Drop target for drawing cards
       return DragTarget<String>(
         builder: (context, candidateData, rejectedData) {
-           bool isHovered = candidateData.isNotEmpty;
+           // No visual feedback during hover
            return Container(
               width: w,
               height: h,
-              decoration: BoxDecoration(
-                color: isHovered ? Colors.white.withOpacity(0.15) : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: isHovered ? Border.all(color: Colors.white.withOpacity(0.5), width: 1) : null,
-              ),
-              child: isHovered 
-                  ? Center(child: Icon(Icons.download_rounded, color: Colors.white.withOpacity(0.7), size: 32)) 
-                  : null,
+              color: Colors.transparent,
            );
         },
         onWillAccept: (data) => data == 'deck_card',
