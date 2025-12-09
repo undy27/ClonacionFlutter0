@@ -168,7 +168,7 @@ class _GameListScreenState extends State<GameListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header: Name and status badge
+                        // Header: Name, delete button and status badge
                         Row(
                           children: [
                             Expanded(
@@ -180,6 +180,36 @@ class _GameListScreenState extends State<GameListScreen> {
                                 ),
                               ),
                             ),
+                            // Delete button if user is creator
+                            if (room['creatorId'] == provider.currentUser?.id)
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                onPressed: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Eliminar partida'),
+                                      content: const Text('¿Seguro que quieres eliminar esta partida?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, true),
+                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                          child: const Text('Eliminar'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    await provider.deleteRoom(room['id']);
+                                  }
+                                },
+                                tooltip: 'Eliminar partida',
+                              ),
+                            const SizedBox(width: 4),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
@@ -289,7 +319,34 @@ class _GameListScreenState extends State<GameListScreen> {
                           ],
                         ),
                         
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
+                        
+                        // Creator info
+                        if (room['creatorId'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.person_outline, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Creada por: ',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                                  ),
+                                ),
+                                Text(
+                                  room['creatorId'] == provider.currentUser?.id ? 'Ti' : room['creatorId'].toString().substring(0, 8),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         
                         // Rating requirement with colorful badge
                         Container(
@@ -316,7 +373,7 @@ class _GameListScreenState extends State<GameListScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Rating requerido: ',
+                                'Puntuación requerida: ',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -334,36 +391,7 @@ class _GameListScreenState extends State<GameListScreen> {
                           ),
                         ),
                         
-                        if (!isFull) ...[
-                          const SizedBox(height: 12),
-                          // Join button
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Icon(
-                                Icons.login,
-                                size: 16,
-                                color: AppTheme.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Toca para unirte',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primary,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.arrow_forward,
-                                size: 16,
-                                color: AppTheme.primary,
-                              ),
-                            ],
-                          ),
-                        ],
+
                       ],
                     ),
                   ),
@@ -388,7 +416,7 @@ class _GameListScreenState extends State<GameListScreen> {
                    
                    final roomId = DateTime.now().millisecondsSinceEpoch.toString();
                    // createOnlineRoom now auto-joins via ROOM_CREATED handler
-                   provider.createOnlineRoom(roomId, nombre, jugadores);
+                   provider.createOnlineRoom(roomId, nombre, jugadores, minRating, maxRating);
                    
                    // Stop polling
                    _timer?.cancel();

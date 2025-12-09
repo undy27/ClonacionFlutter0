@@ -174,14 +174,14 @@ class OnlineGameProvider with ChangeNotifier {
     }
   }
 
-  void createOnlineRoom(String roomId, String roomName, int maxPlayers) {
+  void createOnlineRoom(String roomId, String roomName, int maxPlayers, int minRating, int maxRating) {
     if (!isConnected || _currentUser == null) {
       _errorMessage = 'Debes estar conectado y autenticado';
       notifyListeners();
       return;
     }
 
-    _wsService.createRoom(roomId, roomName, maxPlayers, _currentUser!.id);
+    _wsService.createRoom(roomId, roomName, maxPlayers, _currentUser!.id, minRating, maxRating);
   }
 
   void joinRoom(String roomId, String playerId, String alias) {
