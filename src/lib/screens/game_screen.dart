@@ -83,7 +83,7 @@ class _GameScreenState extends State<GameScreen> {
             // Play valid move sound
             _audioPlayer.play(AssetSource('sonidos/descartes/correcto/correcto.1.wav'));
             
-            Future.delayed(const Duration(milliseconds: 2000), () {
+            Future.delayed(const Duration(milliseconds: 3000), () {
               if (mounted) {
                 setState(() {
                   _pileAnimations.remove(pileIndex);
