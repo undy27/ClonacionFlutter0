@@ -95,14 +95,6 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
             child: Column(
               children: [
                 // Players List
-                Text(
-                  "JUGADORES UNIDOS",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
                 
                 // Players
                 ...players.map((player) {
