@@ -206,9 +206,9 @@ class OnlineGameProvider with ChangeNotifier {
     _wsService.playCard(cardIndex, pileIndex);
   }
 
-  void drawCard() {
+  void drawCard(int slotIndex) {
     if (!isConnected) return;
-    _wsService.drawCard();
+    _wsService.drawCard(slotIndex);
   }
 
   void leaveRoom() {

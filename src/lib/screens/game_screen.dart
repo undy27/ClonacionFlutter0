@@ -954,7 +954,7 @@ class _GameScreenState extends State<GameScreen> {
         onWillAccept: (data) => data == 'deck_card',
         onAccept: (data) {
            debugPrint('[GameScreen] Drawing card to hand index $index');
-           Provider.of<OnlineGameProvider>(context, listen: false).drawCard();
+           Provider.of<OnlineGameProvider>(context, listen: false).drawCard(index);
            SystemSound.play(SystemSoundType.click); 
         }
       );

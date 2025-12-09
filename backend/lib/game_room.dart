@@ -257,24 +257,21 @@ class GameRoom {
     }
   }
 
-  void handleDrawCard(String playerId) {
+  void handleDrawCard(String playerId, int slotIndex) {
     if (status != GameStatus.playing) return;
     
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
     
     if (player.isEliminated) return;
 
-    // Buscar primer slot vacío
-    int? emptySlot;
-    for (int i = 0; i < 5; i++) {
-      if (player.hand[i] == null) {
-        emptySlot = i;
-        break;
-      }
+    // Validate slot index
+    if (slotIndex < 0 || slotIndex >= 5) {
+       _sendError(player, 'Índice de slot inválido');
+       return;
     }
 
-    if (emptySlot == null) {
-       _sendError(player, 'Tu mano está llena');
+    if (player.hand[slotIndex] != null) {
+       _sendError(player, 'Este hueco ya tiene una carta');
        return;
     }
     
@@ -284,9 +281,9 @@ class GameRoom {
     }
 
     Card newCard = player.personalDeck.removeAt(0);
-    player.hand[emptySlot] = newCard;
+    player.hand[slotIndex] = newCard;
     
-    print('[Room $id] ${player.alias} drew card (MANUAL) to slot $emptySlot from personal deck (${player.personalDeck.length} remaining)');
+    print('[Room $id] ${player.alias} drew card (MANUAL) to slot $slotIndex from personal deck (${player.personalDeck.length} remaining)');
     _broadcastGameState();
   }
 

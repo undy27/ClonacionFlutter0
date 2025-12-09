@@ -210,8 +210,8 @@ class WebSocketService extends ChangeNotifier {
     });
   }
 
-  void drawCard() {
-    send({'type': 'DRAW_CARD'});
+  void drawCard(int slotIndex) {
+    send({'type': 'DRAW_CARD', 'slotIndex': slotIndex});
   }
 
   void disconnect() {

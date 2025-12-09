@@ -76,7 +76,8 @@ void main() async {
 
             case 'DRAW_CARD':
               if (currentRoom != null && currentPlayer != null) {
-                currentRoom!.handleDrawCard(currentPlayer!.id);
+                final slotIndex = data['slotIndex'] as int;
+                currentRoom!.handleDrawCard(currentPlayer!.id, slotIndex);
               }
               break;
 
