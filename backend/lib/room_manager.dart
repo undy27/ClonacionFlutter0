@@ -1,11 +1,23 @@
+import 'dart:async';
 import 'game_room.dart';
 
 class RoomManager {
   static final RoomManager _instance = RoomManager._internal();
   factory RoomManager() => _instance;
-  RoomManager._internal();
+  RoomManager._internal() {
+    // Start cleanup timer
+    _startCleanupTimer();
+  }
 
   final Map<String, GameRoom> _rooms = {};
+  Timer? _cleanupTimer;
+
+  void _startCleanupTimer() {
+    // Run cleanup every 30 minutes
+    _cleanupTimer = Timer.periodic(Duration(minutes: 30), (_) {
+      cleanupOldRooms();
+    });
+  }
 
   GameRoom? getRoom(String roomId) => _rooms[roomId];
 
@@ -61,5 +73,41 @@ class RoomManager {
     for (var id in toRemove) {
       removeRoom(id);
     }
+  }
+
+  /// Clean up old rooms based on age and activity
+  void cleanupOldRooms() {
+    final now = DateTime.now();
+    final toRemove = <String>[];
+    
+    _rooms.forEach((id, room) {
+      final age = now.difference(room.createdAt);
+      final inactivity = now.difference(room.lastActivityAt);
+      
+      // Remove rooms older than 1 week
+      if (age.inDays >= 7) {
+        print('[RoomManager] Removing room $id: older than 7 days (${age.inDays} days)');
+        toRemove.add(id);
+      }
+      // Mark as inactive rooms with >2 hours of inactivity
+      else if (inactivity.inHours >= 2 && room.status == GameStatus.playing) {
+        print('[RoomManager] Marking room $id as finished: inactive for ${inactivity.inHours} hours');
+        room.status = GameStatus.finished;
+        // Optionally remove it as well
+        toRemove.add(id);
+      }
+    });
+    
+    for (var id in toRemove) {
+      removeRoom(id);
+    }
+    
+    if (toRemove.isNotEmpty) {
+      print('[RoomManager] Cleaned up ${toRemove.length} old/inactive rooms');
+    }
+  }
+
+  void dispose() {
+    _cleanupTimer?.cancel();
   }
 }

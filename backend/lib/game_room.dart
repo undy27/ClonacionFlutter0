@@ -10,19 +10,21 @@ class GameRoom {
   final String id;
   final String name;
   final int maxPlayers;
+  final DateTime createdAt;
+  DateTime lastActivityAt;
   
   List<Player> players = [];
   GameStatus status = GameStatus.waiting;
-  
   // Game state
   List<Card> deck = [];
   List<Card> remainingDeck = [];
   List<List<Card>> discardPiles = [[], [], [], []]; // 4 pilas
-  
   GameRoom({
     required this.id,
     required this.name,
     required this.maxPlayers,
+  }) : createdAt = DateTime.now(),
+       lastActivityAt = DateTime.now();
   });
 
   void addPlayer(Player player) {
@@ -89,6 +91,7 @@ class GameRoom {
   }
 
   void startGame() {
+    _updateActivity();
     if (players.length < 2) {
       print('[Room $id] Cannot start game with less than 2 players');
       return;
@@ -145,6 +148,7 @@ class GameRoom {
   }
 
   void handlePlayCard(String playerId, int cardIndex, int pileIndex) {
+    _updateActivity();
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
     
     if (player.isEliminated) return;
@@ -258,6 +262,7 @@ class GameRoom {
   }
 
   void handleDrawCard(String playerId, int slotIndex) {
+    _updateActivity();
     if (status != GameStatus.playing) return;
     
     final player = players.firstWhere((p) => p.id == playerId, orElse: () => throw Exception('Player not found'));
@@ -343,3 +348,8 @@ class GameRoom {
     }
   }
 }
+
+
+  void _updateActivity() {
+    lastActivityAt = DateTime.now();
+  }
