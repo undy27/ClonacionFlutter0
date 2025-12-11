@@ -112,10 +112,10 @@ class _GameScreenState extends State<GameScreen> {
               _haloTimestamps[pileIndex] = timestamp;
             });
             
-            debugPrint('[GameScreen] Halo activated for pile $pileIndex, will remove in 1.2s');
+            debugPrint('[GameScreen] Halo activated for pile $pileIndex, will remove in 0.35s');
             
-            // Remove halo after animation completes (1s animation + 200ms buffer)
-            Future.delayed(const Duration(milliseconds: 1200), () {
+            // Remove halo after 350ms
+            Future.delayed(const Duration(milliseconds: 350), () {
               if (mounted) {
                 debugPrint('[GameScreen] Removing halo for pile $pileIndex');
                 setState(() {
@@ -698,54 +698,21 @@ class _GameScreenState extends State<GameScreen> {
     
     List<Widget> stackChildren = [];
     
-    // 0. Halo animation (if active)
+    // 0. Halo effect (if active) - simple red border
     if (showHalo && haloTimestamp > 0) {
       stackChildren.add(
         Positioned(
-          left: 0,
-          top: 0,
-          width: w,
-          height: h,
-          child: Center(
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey('halo_$index\_$haloTimestamp'),
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.easeInOut,
-              builder: (context, progress, child) {
-                // Asymmetric animation for better perception:
-                // 0.0 -> 0.6 (600ms): slow grow from 1.0 to 2.0
-                // 0.6 -> 1.0 (400ms): faster shrink from 2.0 back to 1.0
-                final scale = progress < 0.6
-                    ? 1.0 + 1.0 * (progress / 0.6)           // 0->0.6: 1.0->2.0
-                    : 2.0 - 1.0 * ((progress - 0.6) / 0.4);  // 0.6->1.0: 2.0->1.0
-                
-                // Keep fully visible throughout (no fade)
-                const opacity = 1.0;
-                
-                return Opacity(
-                  opacity: opacity,
-                  child: Container(
-                    width: w * scale,
-                    height: h * scale,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12 * scale),
-                      color: Color(0xFFEF5350).withOpacity(0.8), // Light red fill at 80%
-                      border: Border.all(
-                        color: Color(0xFFEF5350), // Light red (#EF5350)
-                        width: 3 * scale,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0xFFEF5350).withOpacity(0.6),
-                          blurRadius: 20 * scale,
-                          spreadRadius: 5 * scale,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+          left: -5,
+          top: -5,
+          right: -5,
+          bottom: -5,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Color(0xFFD32F2F), // Darker red (Material Red 700)
+                width: 8,
+              ),
             ),
           ),
         ),
