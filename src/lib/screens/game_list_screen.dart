@@ -316,12 +316,15 @@ class _GameListScreenState extends State<GameListScreen> {
                                     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                                   ),
                                 ),
-                                Text(
-                                  room['creatorId'] == provider.currentUser?.id ? 'Ti' : room['creatorId'].toString().substring(0, 8),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                                Flexible(
+                                  child: Text(
+                                    room['creatorId'] == provider.currentUser?.id ? 'Ti' : room['creatorId'].toString().substring(0, 8),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -352,11 +355,14 @@ class _GameListScreenState extends State<GameListScreen> {
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                'Puntuación requerida: ',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                              Flexible(
+                                child: Text(
+                                  'Puntuación requerida: ',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  ),
                                 ),
                               ),
                               Text(
