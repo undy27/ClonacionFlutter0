@@ -35,10 +35,13 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 30),
 
               // Sheep GIF
-              Image.asset(
-                'assets/ovejas/clon.gif',
-                fit: BoxFit.contain,
-                width: MediaQuery.of(context).size.width * 0.4,
+              Hero(
+                tag: 'sheep_gif',
+                child: Image.asset(
+                  'assets/ovejas/clon.gif',
+                  fit: BoxFit.contain,
+                  width: MediaQuery.of(context).size.width * 0.4,
+                ),
               ),
               const SizedBox(height: 30),
 

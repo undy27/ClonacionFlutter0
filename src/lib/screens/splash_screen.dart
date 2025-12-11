@@ -29,10 +29,13 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(flex: 2),
-            Image.asset(
-              'assets/ovejas/clon.gif',
-              fit: BoxFit.contain,
-              width: MediaQuery.of(context).size.width * 0.4,
+            Hero(
+              tag: 'sheep_gif',
+              child: Image.asset(
+                'assets/ovejas/clon.gif',
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.4,
+              ),
             ),
             const Spacer(flex: 3),
           ],
