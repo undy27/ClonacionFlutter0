@@ -26,6 +26,7 @@ class RoomManager {
     required String name,
     required int maxPlayers,
     String? creatorId,
+    String? creatorName,
     int minRating = 0,
     int maxRating = 9999,
   }) {
@@ -39,6 +40,7 @@ class RoomManager {
       maxPlayers: maxPlayers,
       minRating: minRating,
       creatorId: creatorId,
+      creatorName: creatorName,
       maxRating: maxRating,
     );
     

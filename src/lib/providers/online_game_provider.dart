@@ -181,7 +181,7 @@ class OnlineGameProvider with ChangeNotifier {
       return;
     }
 
-    _wsService.createRoom(roomId, roomName, maxPlayers, _currentUser!.id, minRating, maxRating);
+    _wsService.createRoom(roomId, roomName, maxPlayers, _currentUser!.id, _currentUser!.alias, minRating, maxRating);
   }
 
   void joinRoom(String roomId, String playerId, String alias) {

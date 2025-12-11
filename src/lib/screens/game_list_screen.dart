@@ -318,7 +318,9 @@ class _GameListScreenState extends State<GameListScreen> {
                                 ),
                                 Flexible(
                                   child: Text(
-                                    room['creatorId'] == provider.currentUser?.id ? 'Ti' : room['creatorId'].toString().substring(0, 8),
+                                    room['creatorId'] == provider.currentUser?.id
+                                        ? 'Ti'
+                                        : (room['creatorName'] ?? room['creatorId'].toString().substring(0, 8)),
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 13,
@@ -357,7 +359,7 @@ class _GameListScreenState extends State<GameListScreen> {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  'Puntuación requerida: ',
+                                  'Puntuación: ',
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,

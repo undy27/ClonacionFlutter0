@@ -14,6 +14,7 @@ class GameRoom {
   final int maxRating;
   final DateTime createdAt;
   final String? creatorId;
+  final String? creatorName;
   DateTime lastActivityAt;
   
   List<Player> players = [];
@@ -31,6 +32,7 @@ class GameRoom {
     this.minRating = 0,
     this.maxRating = 9999,
     this.creatorId,
+    this.creatorName,
   }) : createdAt = DateTime.now(),
        lastActivityAt = DateTime.now();
 

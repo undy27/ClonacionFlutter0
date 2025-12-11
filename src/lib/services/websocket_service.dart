@@ -178,20 +178,21 @@ class WebSocketService extends ChangeNotifier {
   }
 
   // High-level methods for game actions
-  void createRoom(String roomId, String roomName, int maxPlayers, String? creatorId, int minRating, int maxRating) {
+  void createRoom(String roomId, String roomName, int maxPlayers, String? creatorId, String? creatorName, int minRating, int maxRating) {
     send({
       'type': 'CREATE_ROOM',
       'roomId': roomId,
       'roomName': roomName,
       'maxPlayers': maxPlayers,
-    'minRating': minRating,
-    'maxRating': maxRating,
-    'creatorId': creatorId,
+      'minRating': minRating,
+      'maxRating': maxRating,
+      'creatorId': creatorId,
+      'creatorName': creatorName,
     });
   }
 
   void joinRoom(String roomId, String playerId, String alias, String avatar) {
-    print('[WebSocketService] Sending JOIN: alias=$alias, avatar=$avatar');
+    debugPrint('[WebSocketService] Sending JOIN: alias=$alias, avatar=$avatar');
     send({
       'type': 'JOIN',
       'roomId': roomId,

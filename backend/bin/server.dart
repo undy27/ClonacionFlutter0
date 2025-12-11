@@ -36,6 +36,7 @@ void main() async {
           'minRating': room.minRating,
           'maxRating': room.maxRating,
           'creatorId': room.creatorId,
+          'creatorName': room.creatorName,
         }).toList();
     
     return Response.ok(
@@ -169,6 +170,7 @@ void _handleCreateRoom(WebSocketChannel socket, Map<String, dynamic> data, RoomM
   final minRating = data['minRating'] as int? ?? 0;
   final maxRating = data['maxRating'] as int? ?? 9999;
   final creatorId = data['creatorId'] as String?;
+  final creatorName = data['creatorName'] as String?;
 
   try {
     final room = manager.createRoom(
@@ -178,6 +180,7 @@ void _handleCreateRoom(WebSocketChannel socket, Map<String, dynamic> data, RoomM
       minRating: minRating,
       maxRating: maxRating,
       creatorId: creatorId,
+      creatorName: creatorName,
     );
 
     socket.sink.add(jsonEncode({
