@@ -232,9 +232,14 @@ class _GameScreenState extends State<GameScreen> {
     debugPrint('[GameScreen] Mode: ONLINE, Hand: ${myHand.length}, Piles: ${discardPiles.map((p) => p.length).toList()}');
     
     // Fixed margins - NEVER change with screen size
+    // Safe area for bottom navigation bar (Android gestures / iOS Home indicator)
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    
     // Fixed margins - NEVER change with screen size
     const double topMargin = 60.0;
     const double bottomMargin = 20.0;
+    final double effectiveBottomMargin = bottomMargin + safeBottom;
+    
     const double leftMargin = 20.0;
     const double rightMargin = 20.0;
     const double minVerticalSpacing = 20.0; // Minimum space between zones
@@ -242,7 +247,7 @@ class _GameScreenState extends State<GameScreen> {
     const double cardSpacingHorizontal = 10.0; // Between cards in the same row
     
     // Available space after fixed margins and minimum spacing
-    final availableHeight = size.height - topMargin - bottomMargin - minVerticalSpacing;
+    final availableHeight = size.height - topMargin - effectiveBottomMargin - minVerticalSpacing;
     
     // Calculate card size based on available height
     // Upper zone: 2 rows of cards + spacing between them
@@ -284,9 +289,9 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(
+            padding: EdgeInsets.only(
               top: topMargin,
-              bottom: bottomMargin,
+              bottom: effectiveBottomMargin,
             ),
             child: Column(
               children: [
