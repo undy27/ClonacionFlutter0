@@ -56,7 +56,15 @@ class _AuthScreenState extends State<AuthScreen> {
                   color: AppTheme.secondary,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 30),
+
+              // Sheep GIF
+              Image.asset(
+                'assets/ovejas/clon.gif',
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.4,
+              ),
+              const SizedBox(height: 30),
 
               // Content based on mode
               AnimatedSwitcher(
