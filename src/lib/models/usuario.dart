@@ -36,10 +36,17 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
+    // Validate avatar - if it doesn't exist, assign a random one
+    String avatarValue = json['avatar'] ?? 'default';
+    if (!_isValidAvatar(avatarValue)) {
+      avatarValue = _getRandomAvatar();
+      print('[Usuario] Avatar "$avatarValue" not found, assigned random: $avatarValue');
+    }
+    
     return Usuario(
       id: json['id'],
       alias: json['alias'],
-      avatar: json['avatar'] ?? 'default',
+      avatar: avatarValue,
       rating: json['rating'] ?? 1500,
       partidasJugadas: json['partidas_jugadas'] ?? 0,
       victorias: json['victorias'] ?? 0,
@@ -54,6 +61,17 @@ class Usuario {
       isDarkMode: json['is_dark_mode'] ?? false,
       useInternetServer: json['use_internet_server'] ?? true,
     );
+  }
+  
+  static bool _isValidAvatar(String avatar) {
+    const availableAvatars = ['ainara', 'amy', 'androide', 'cientifico', 'fx'];
+    return availableAvatars.contains(avatar);
+  }
+  
+  static String _getRandomAvatar() {
+    const availableAvatars = ['ainara', 'amy', 'androide', 'cientifico', 'fx'];
+    final random = DateTime.now().millisecondsSinceEpoch % availableAvatars.length;
+    return availableAvatars[random];
   }
 
   Map<String, dynamic> toJson() {
