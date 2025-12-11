@@ -124,7 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
     
     return Container(
       key: ValueKey(title),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -160,7 +160,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(width: 48), // Balance back button
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             
             TextFormField(
               controller: _aliasController,
@@ -168,7 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
               validator: (value) => value!.isEmpty ? "Requerido" : null,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             
             if (!isGuest)
               TextFormField(
@@ -179,7 +179,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             
             SizedBox(
               width: double.infinity,
