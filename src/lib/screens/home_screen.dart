@@ -15,6 +15,8 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Spacer(flex: 2),
+              
               // Logo/Title
               Text(
                 "CLONACIÓN",
@@ -30,7 +32,15 @@ class HomeScreen extends StatelessWidget {
                   color: AppTheme.secondary,
                 ),
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 30),
+
+              // Sheep GIF
+              Image.asset(
+                'assets/ovejas/clon.gif',
+                fit: BoxFit.contain,
+                width: MediaQuery.of(context).size.width * 0.4,
+              ),
+              const SizedBox(height: 30),
 
               // Buttons
               SizedBox(
@@ -66,6 +76,8 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
               ),
+              
+              const Spacer(flex: 3),
             ],
           ),
         ),

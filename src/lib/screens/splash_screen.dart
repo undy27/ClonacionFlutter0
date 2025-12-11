@@ -23,12 +23,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       body: Center(
-        child: Image.asset(
-          'assets/ovejas/clon.gif',
-          fit: BoxFit.contain,
-          width: MediaQuery.of(context).size.width * 0.8,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(flex: 2),
+            Image.asset(
+              'assets/ovejas/clon.gif',
+              fit: BoxFit.contain,
+              width: MediaQuery.of(context).size.width * 0.4,
+            ),
+            const Spacer(flex: 3),
+          ],
         ),
       ),
     );
