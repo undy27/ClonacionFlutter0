@@ -1025,6 +1025,7 @@ class _GameScreenState extends State<GameScreen> {
         onAccept: (data) {
            debugPrint('[GameScreen] Drawing card to hand index $index');
            Provider.of<OnlineGameProvider>(context, listen: false).drawCard(index);
+           HapticFeedback.heavyImpact(); // Stronger feedback
            SystemSound.play(SystemSoundType.click); 
         }
       );
@@ -1087,6 +1088,7 @@ class _GameScreenState extends State<GameScreen> {
     },
     child: Draggable(
       maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
+      onDragStarted: () => HapticFeedback.heavyImpact(),
       data: carta,
       feedback: Transform.rotate(
         angle: angleRadians, // Use stored angle
@@ -1252,6 +1254,7 @@ class _GameScreenState extends State<GameScreen> {
 
     stackChildren.add(
         canDraw ? Draggable<String>(
+          onDragStarted: () => HapticFeedback.heavyImpact(),
           data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
