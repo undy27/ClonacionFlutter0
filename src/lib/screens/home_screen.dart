@@ -13,9 +13,9 @@ class HomeScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Spacer(flex: 2),
+              const SizedBox(height: 40),
               
               // Logo/Title
               Text(
@@ -80,7 +80,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               
-              const Spacer(flex: 3),
             ],
           ),
         ),

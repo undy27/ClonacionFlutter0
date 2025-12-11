@@ -38,43 +38,52 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Title
-              Text(
-                "CLONACIÓN",
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppTheme.primary,
-                  shadows: AppTheme.hardShadow,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - 48,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(height: 40),
+                
+                // Title
+                Text(
+                  "CLONACIÓN",
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    color: AppTheme.primary,
+                    shadows: AppTheme.hardShadow,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Multiplica tu mente",
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.secondary,
+                const SizedBox(height: 10),
+                Text(
+                  "Multiplica tu mente",
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.secondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-              // Sheep GIF
-              Hero(
-                tag: 'sheep_gif',
-                child: Image.asset(
-                  'assets/ovejas/clon.gif',
-                  fit: BoxFit.contain,
-                  width: MediaQuery.of(context).size.width * 0.4,
+                // Sheep GIF
+                Hero(
+                  tag: 'sheep_gif',
+                  child: Image.asset(
+                    'assets/ovejas/clon.gif',
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.4,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-              // Content based on mode
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildContent(),
-              ),
-            ],
+                // Content based on mode
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _buildContent(),
+                ),
+                
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
@@ -124,7 +133,7 @@ class _AuthScreenState extends State<AuthScreen> {
     
     return Container(
       key: ValueKey(title),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -160,7 +169,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(width: 48), // Balance back button
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
             
             TextFormField(
               controller: _aliasController,
@@ -168,7 +177,7 @@ class _AuthScreenState extends State<AuthScreen> {
               validator: (value) => value!.isEmpty ? "Requerido" : null,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             if (!isGuest)
               TextFormField(
@@ -179,7 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             
             SizedBox(
               width: double.infinity,

@@ -25,20 +25,24 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(flex: 2),
-            Hero(
-              tag: 'sheep_gif',
-              child: Image.asset(
-                'assets/ovejas/clon.gif',
-                fit: BoxFit.contain,
-                width: MediaQuery.of(context).size.width * 0.4,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // Matches Auth/Home top spacing: 40 + Title(~60) + 10 + Subtitle(~24) + 30 = ~164
+              const SizedBox(height: 164), 
+              
+              Hero(
+                tag: 'sheep_gif',
+                child: Image.asset(
+                  'assets/ovejas/clon.gif',
+                  fit: BoxFit.contain,
+                  width: MediaQuery.of(context).size.width * 0.4,
+                ),
               ),
-            ),
-            const Spacer(flex: 3),
-          ],
+            ],
+          ),
         ),
       ),
     );
