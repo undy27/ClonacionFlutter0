@@ -56,9 +56,18 @@ class _GameScreenState extends State<GameScreen> {
   };
   GlobalKey? _deckKey = GlobalKey();
 
+  // Hand rotation state
+  List<double> _handAngles = [0, 0, 0, 0, 0];
+  List<Carta?> _previousHand = [null, null, null, null, null];
+  bool _hasReceivedInitialHand = false;
+
   @override
   void initState() {
     super.initState();
+    
+    // Listen to hand changes for rotation logic
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    onlineProvider.addListener(_updateHandAngles);
     
     // Listen to card played events for animations
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -143,6 +152,9 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
+    onlineProvider.removeListener(_updateHandAngles);
+    
     _cardPlayedSubscription?.cancel();
     _penaltySubscription?.cancel();
     _gameOverSubscription?.cancel();
@@ -206,6 +218,63 @@ class _GameScreenState extends State<GameScreen> {
       _isPenaltyActive = false;
       _penaltyText = null;
     });
+  }
+
+  void _updateHandAngles() {
+     if (!mounted) return;
+     final provider = Provider.of<OnlineGameProvider>(context, listen: false);
+     final currentHand = provider.myHand;
+     
+     // Ensure list sizes are correct
+     if (_previousHand.length != 5) _previousHand = List.filled(5, null);
+     if (_handAngles.length != 5) _handAngles = List.filled(5, 0.0);
+     
+     bool changed = false;
+     bool hasAnyCard = false;
+
+     for (int i = 0; i < 5; i++) {
+        Carta? prev = _previousHand[i];
+        Carta? curr = (i < currentHand.length) ? currentHand[i] : null;
+        
+        if (curr != null) hasAnyCard = true;
+
+        if (prev?.id != curr?.id) {
+           // Changed slot content
+           if (prev == null && curr != null) {
+              // Card added (Drawn or initial deal)
+              if (_hasReceivedInitialHand) {
+                  // Drawn -> Random angle (-3 to 3 degrees)
+                  final random = Random();
+                  _handAngles[i] = (-3 + random.nextDouble() * 6) * (pi / 180);
+              } else {
+                  // Initial deal -> Straight
+                  _handAngles[i] = 0.0;
+              }
+           } else if (curr == null) {
+              // Card removed -> Reset to 0
+              _handAngles[i] = 0.0;
+           } else if (prev != null && curr != null) {
+              // Card replaced? (Shouldn't happen in normal flow, but safeguard)
+              // Keep angle or randomize? Randomize if ID changed.
+              if (_hasReceivedInitialHand) {
+                  final random = Random();
+                  _handAngles[i] = (-3 + random.nextDouble() * 6) * (pi / 180);
+              }
+           }
+           changed = true;
+        }
+        _previousHand[i] = curr;
+     }
+     
+     // Mark initial hand as received if we have cards
+     if (hasAnyCard && !_hasReceivedInitialHand) {
+        _hasReceivedInitialHand = true;
+        // No setState needed if just marking flag, but if angles changed we do.
+     }
+     
+     if (changed) {
+        setState(() {});
+     }
   }
 
   @override
@@ -960,60 +1029,66 @@ class _GameScreenState extends State<GameScreen> {
 
     
     final carta = hand[index]!; // Safe because we checked above
-    
-    // Deterministic random rotation based on card hash so it doesn't jitter on rebuilds
-    final random = Random(carta.hashCode);
-    final angleDegrees = -3 + random.nextDouble() * 6; // -3 to 3 degrees
-    final angleRadians = angleDegrees * (pi / 180);
-    
-    return TweenAnimationBuilder(
-      key: ValueKey('card_${carta.id}'),
-      duration: const Duration(milliseconds: 200), // Fast, snappy flip
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      builder: (context, double value, child) {
-        if (value >= 1.0) return child!;
-        
-        // Flip from -140° (back tilted 40°) to 0° (front flat)
-        final rotation = -(7 * pi / 9) * (1.0 - value); // -140° to 0°
-        
-        // Show back when rotation < -90° (perpendicular), front when rotation >= -90°
-        final isBack = rotation < -(pi / 2);
-        
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..rotateY(rotation),
-          child: isBack
-              ? Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()..rotateY(-pi),
-                  child: Container(
-                    width: w, 
-                    height: h,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(9),
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [
-                         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: Image.asset('assets/reverso_carta.png', fit: BoxFit.fill),
-                    ),
-                  ),
-                )
-              : child,
+  
+  // Get stored rotation angle
+  final angleRadians = (_handAngles.length > index) ? _handAngles[index] : 0.0;
+  
+  return TweenAnimationBuilder(
+    key: ValueKey('card_${carta.id}'),
+    duration: const Duration(milliseconds: 200), // Fast, snappy flip
+    tween: Tween<double>(begin: 0.0, end: 1.0),
+    builder: (context, double value, child) {
+      if (value >= 1.0) {
+        // Static state (animation finished)
+        // Apply tilt rotation
+        return Transform.rotate(
+            angle: angleRadians,
+            child: child!,
         );
-      },
-      child: Draggable(
-        maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
-        data: carta,
-        feedback: Transform.rotate(
-          angle: angleRadians,
-          child: Material(
-            color: Colors.transparent,
+      }
+      
+      // Flip from -140° (back tilted 40°) to 0° (front flat)
+      final rotation = -(7 * pi / 9) * (1.0 - value); // -140° to 0°
+      
+      // Show back when rotation < -90° (perpendicular), front when rotation >= -90°
+      final isBack = rotation < -(pi / 2);
+      
+      return Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.001)
+          ..rotateZ(angleRadians) // Apply tilt
+          ..rotateY(rotation),
+        child: isBack
+            ? Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..rotateY(-pi),
+                child: Container(
+                  width: w, 
+                  height: h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                       BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: Image.asset('assets/reverso_carta.png', fit: BoxFit.fill),
+                  ),
+                ),
+              )
+            : child,
+      );
+    },
+    child: Draggable(
+      maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
+      data: carta,
+      feedback: Transform.rotate(
+        angle: angleRadians, // Use stored angle
+        child: Material(
+          color: Colors.transparent,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(9),
@@ -1105,8 +1180,10 @@ class _GameScreenState extends State<GameScreen> {
         final angleDegrees = -3 + random.nextDouble() * 6;
         final angleRadians = angleDegrees * (pi / 180);
         
-        final offsetX = -2 + random.nextDouble() * 4;
-        final offsetY = -2 + random.nextDouble() * 4;
+        // Pronounced cascade to bottom-right (more visible)
+        final double cascadeStep = 4.0; 
+        final offsetX = i * cascadeStep;
+        final offsetY = i * cascadeStep;
 
         stackChildren.add(
             Positioned(
