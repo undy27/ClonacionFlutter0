@@ -27,7 +27,8 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   // State for animations
   Map<int, MatchDetails> _pileAnimations = {};
-  Map<int, bool> _pileHalos = {}; // Para el halo rojo de otros jugadores
+  Map<int, bool> _pileHalos = {};
+  Map<int, int> _haloTimestamps = {}; // Unique timestamp per pile to force animation restart
   StreamSubscription? _cardPlayedSubscription;
   StreamSubscription? _penaltySubscription;
   StreamSubscription? _gameOverSubscription;
@@ -101,12 +102,20 @@ class _GameScreenState extends State<GameScreen> {
             });
           } else {
             // Halo rojo para otros
+            final timestamp = DateTime.now().millisecondsSinceEpoch;
+            debugPrint('[GameScreen] Opponent played on pile $pileIndex - timestamp: $timestamp');
+            
             setState(() {
               _pileHalos[pileIndex] = true;
+              _haloTimestamps[pileIndex] = timestamp;
             });
             
-            Future.delayed(const Duration(milliseconds: 500), () {
+            debugPrint('[GameScreen] Halo activated for pile $pileIndex, will remove in 5s');
+            
+            // Remove halo after 5 seconds
+            Future.delayed(const Duration(milliseconds: 5000), () {
               if (mounted) {
+                debugPrint('[GameScreen] Removing halo for pile $pileIndex');
                 setState(() {
                   _pileHalos.remove(pileIndex);
                 });
@@ -384,9 +393,9 @@ class _GameScreenState extends State<GameScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], showHalo: _pileHalos[0] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(0, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[0], showHalo: _pileHalos[0] ?? false, haloTimestamp: _haloTimestamps[0] ?? 0, maxChars: maxCharsInBoard, useVariableFont: true),
                                     SizedBox(width: cardSpacingHorizontal),
-                                    _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], showHalo: _pileHalos[1] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(1, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[1], showHalo: _pileHalos[1] ?? false, haloTimestamp: _haloTimestamps[1] ?? 0, maxChars: maxCharsInBoard, useVariableFont: true),
                                   ],
                                 ),
                               ),
@@ -399,9 +408,9 @@ class _GameScreenState extends State<GameScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], showHalo: _pileHalos[2] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(2, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[2], showHalo: _pileHalos[2] ?? false, haloTimestamp: _haloTimestamps[2] ?? 0, maxChars: maxCharsInBoard, useVariableFont: true),
                                     SizedBox(width: cardSpacingHorizontal),
-                                    _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], showHalo: _pileHalos[3] ?? false, maxChars: maxCharsInBoard, useVariableFont: true),
+                                    _buildDiscardPile(3, discardPiles, cardWidth, cardHeight, matchDetails: _pileAnimations[3], showHalo: _pileHalos[3] ?? false, haloTimestamp: _haloTimestamps[3] ?? 0, maxChars: maxCharsInBoard, useVariableFont: true),
                                   ],
                                 ),
                               ),
@@ -643,7 +652,7 @@ class _GameScreenState extends State<GameScreen> {
     return maxChars;
   }
 
-  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails, bool showHalo = false, int maxChars = 5, bool useVariableFont = true}) {
+  Widget _buildDiscardPile(int index, List<List<Carta>> allPiles, double w, double h, {MatchDetails? matchDetails, bool showHalo = false, int haloTimestamp = 0, int maxChars = 5, bool useVariableFont = true}) {
     final pile = allPiles[index];
     
     if (pile.isEmpty) {
@@ -688,7 +697,7 @@ class _GameScreenState extends State<GameScreen> {
     List<Widget> stackChildren = [];
     
     // 0. Halo animation (if active)
-    if (showHalo) {
+    if (showHalo && haloTimestamp > 0) {
       stackChildren.add(
         Positioned(
           left: -w * 0.25,
@@ -697,15 +706,26 @@ class _GameScreenState extends State<GameScreen> {
           height: h * 1.5,
           child: Center(
             child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 1.0, end: 1.4),
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOut,
-              builder: (context, value, child) {
+              key: ValueKey('halo_$index\_$haloTimestamp'),
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 5000),
+              curve: Curves.easeInOut,
+              builder: (context, progress, child) {
+                debugPrint('[Halo] Pile $index, progress: ${progress.toStringAsFixed(2)}, timestamp: $haloTimestamp');
+                
+                // Symmetric grow/shrink: 0->0.5 grows, 0.5->1.0 shrinks
+                final scale = progress < 0.5
+                    ? 1.0 + 0.4 * (progress * 2) // 0->0.5: scale 1.0->1.4
+                    : 1.4 - 0.4 * ((progress - 0.5) * 2); // 0.5->1.0: scale 1.4->1.0
+                
+                // Opacity: full until 80%, then fade
+                final opacity = progress < 0.8 ? 1.0 : (1.0 - (progress - 0.8) / 0.2);
+                
                 return Opacity(
-                  opacity: ((1.4 - value) / 0.4).clamp(0.0, 1.0), // Fade out as it grows
+                  opacity: opacity.clamp(0.0, 1.0),
                   child: Container(
-                    width: w * value,
-                    height: h * value,
+                    width: w * scale,
+                    height: h * scale,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
@@ -1086,10 +1106,11 @@ class _GameScreenState extends State<GameScreen> {
             : child,
       );
     },
-    child: Draggable(
-      maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
-      onDragStarted: () => HapticFeedback.heavyImpact(),
-      data: carta,
+    child: GestureDetector(
+      onTapDown: (_) => HapticFeedback.heavyImpact(),
+      child: Draggable(
+        maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
+        data: carta,
       feedback: Transform.rotate(
         angle: angleRadians, // Use stored angle
         child: Material(
@@ -1129,6 +1150,7 @@ class _GameScreenState extends State<GameScreen> {
             maxCharsInBoard: maxChars,
             useVariableFont: useVariableFont,
           ),
+        ),
       ),
     );
   }
@@ -1253,9 +1275,10 @@ class _GameScreenState extends State<GameScreen> {
     final canDraw = count > 0 && myHandSize < 5 && !_isPenaltyActive;
 
     stackChildren.add(
-        canDraw ? Draggable<String>(
-          onDragStarted: () => HapticFeedback.heavyImpact(),
-          data: 'deck_card',
+        canDraw ? GestureDetector(
+          onTapDown: (_) => HapticFeedback.heavyImpact(),
+          child: Draggable<String>(
+            data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
             child: Container(
@@ -1286,7 +1309,8 @@ class _GameScreenState extends State<GameScreen> {
           ),
           childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
           child: topCardVisual,
-        ) : topCardVisual
+        ),
+      ) : topCardVisual
     );
     
     return Stack(
