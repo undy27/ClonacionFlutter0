@@ -234,11 +234,14 @@ class _WaitingRoomScreenState extends State<WaitingRoomScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2)
                       ),
                       const SizedBox(width: 16),
-                      Text(
-                        "Esperando jugadores... (${players.length}/$maxPlayers)",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.secondary,
+                      Expanded(
+                        child: Text(
+                          "Esperando jugadores... (${players.length}/$maxPlayers)",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.secondary,
+                          ),
                         ),
                       ),
                     ],
