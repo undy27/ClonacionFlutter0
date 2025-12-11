@@ -112,10 +112,10 @@ class _GameScreenState extends State<GameScreen> {
               _haloTimestamps[pileIndex] = timestamp;
             });
             
-            debugPrint('[GameScreen] Halo activated for pile $pileIndex, will remove in 5s');
+            debugPrint('[GameScreen] Halo activated for pile $pileIndex, will remove in 1.2s');
             
-            // Remove halo after 5 seconds
-            Future.delayed(const Duration(milliseconds: 5000), () {
+            // Remove halo after animation completes (1s animation + 200ms buffer)
+            Future.delayed(const Duration(milliseconds: 1200), () {
               if (mounted) {
                 debugPrint('[GameScreen] Removing halo for pile $pileIndex');
                 setState(() {
@@ -702,39 +702,44 @@ class _GameScreenState extends State<GameScreen> {
     if (showHalo && haloTimestamp > 0) {
       stackChildren.add(
         Positioned(
-          left: -w * 0.25,
-          top: -h * 0.25,
-          width: w * 1.5,
-          height: h * 1.5,
+          left: 0,
+          top: 0,
+          width: w,
+          height: h,
           child: Center(
             child: TweenAnimationBuilder<double>(
               key: ValueKey('halo_$index\_$haloTimestamp'),
               tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 5000),
+              duration: const Duration(milliseconds: 1000),
               curve: Curves.easeInOut,
               builder: (context, progress, child) {
-                debugPrint('[Halo] Pile $index, progress: ${progress.toStringAsFixed(2)}, timestamp: $haloTimestamp');
+                // Asymmetric animation for better perception:
+                // 0.0 -> 0.6 (600ms): slow grow from 1.0 to 2.0
+                // 0.6 -> 1.0 (400ms): faster shrink from 2.0 back to 1.0
+                final scale = progress < 0.6
+                    ? 1.0 + 1.0 * (progress / 0.6)           // 0->0.6: 1.0->2.0
+                    : 2.0 - 1.0 * ((progress - 0.6) / 0.4);  // 0.6->1.0: 2.0->1.0
                 
-                // Symmetric grow/shrink: 0->0.5 grows, 0.5->1.0 shrinks
-                final scale = progress < 0.5
-                    ? 1.0 + 0.4 * (progress * 2) // 0->0.5: scale 1.0->1.4
-                    : 1.4 - 0.4 * ((progress - 0.5) * 2); // 0.5->1.0: scale 1.4->1.0
-                
-                // Opacity: full until 80%, then fade
-                final opacity = progress < 0.8 ? 1.0 : (1.0 - (progress - 0.8) / 0.2);
+                // Keep fully visible throughout (no fade)
+                const opacity = 1.0;
                 
                 return Opacity(
-                  opacity: opacity.clamp(0.0, 1.0),
+                  opacity: opacity,
                   child: Container(
                     width: w * scale,
                     height: h * scale,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12 * scale),
+                      color: Color(0xFFEF5350).withOpacity(0.8), // Light red fill at 80%
+                      border: Border.all(
+                        color: Color(0xFFEF5350), // Light red (#EF5350)
+                        width: 3 * scale,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.red.withOpacity(0.8),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+                          color: Color(0xFFEF5350).withOpacity(0.6),
+                          blurRadius: 20 * scale,
+                          spreadRadius: 5 * scale,
                         ),
                       ],
                     ),
