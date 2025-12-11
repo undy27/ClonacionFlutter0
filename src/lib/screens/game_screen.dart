@@ -902,15 +902,13 @@ class _GameScreenState extends State<GameScreen> {
     return Container(
       height: availableHeight,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-        color: isCurrentUser 
-            ? (isDark ? AppTheme.primary.withOpacity(0.3) : AppTheme.primary.withOpacity(0.1))
-            : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+        color: Colors.transparent, // Transparent to show table felt
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrentUser ? AppTheme.primary : (isDark ? Colors.white24 : Colors.black12),
-          width: isCurrentUser ? 2 : 1,
+          color: isCurrentUser ? AppTheme.primary : Colors.white24, // Always use dark mode colors
+          width: isCurrentUser ? 4 : 2,
         ),
         boxShadow: [
           BoxShadow(
@@ -927,7 +925,7 @@ class _GameScreenState extends State<GameScreen> {
           // Avatar
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2C2C2C) : Colors.white, // Solid background
+              color: const Color(0xFF2C2C2C), // Always use dark mode color
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(8),
               // Border removed to maximize avatar size
@@ -972,7 +970,7 @@ class _GameScreenState extends State<GameScreen> {
                     style: TextStyle(
                         fontSize: fontSizeStats, 
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.grey[300] : Colors.black87
+                        color: Colors.grey[300] // Always use dark mode color
                     ),
                   ),
                 ],
