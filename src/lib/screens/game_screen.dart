@@ -81,6 +81,8 @@ class _GameScreenState extends State<GameScreen> {
           final playerId = data['playerId'] as String;
           final isMe = playerId == onlineProvider.currentUser?.id;
           
+          debugPrint('[GameScreen] CARD_PLAYED event: pile=$pileIndex, playerId=$playerId, myId=${onlineProvider.currentUser?.id}, isMe=$isMe');
+          
           if (isMe) {
             // Animación de operaciones para mí
             final matchDetailsMap = data['matchDetails'] as Map<String, dynamic>;
@@ -1106,11 +1108,10 @@ class _GameScreenState extends State<GameScreen> {
             : child,
       );
     },
-    child: GestureDetector(
-      onTapDown: (_) => HapticFeedback.heavyImpact(),
-      child: Draggable(
-        maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
-        data: carta,
+    child: Draggable(
+      maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
+      onDragStarted: () => HapticFeedback.heavyImpact(),
+      data: carta,
       feedback: Transform.rotate(
         angle: angleRadians, // Use stored angle
         child: Material(
@@ -1150,7 +1151,6 @@ class _GameScreenState extends State<GameScreen> {
             maxCharsInBoard: maxChars,
             useVariableFont: useVariableFont,
           ),
-        ),
       ),
     );
   }
@@ -1275,10 +1275,9 @@ class _GameScreenState extends State<GameScreen> {
     final canDraw = count > 0 && myHandSize < 5 && !_isPenaltyActive;
 
     stackChildren.add(
-        canDraw ? GestureDetector(
-          onTapDown: (_) => HapticFeedback.heavyImpact(),
-          child: Draggable<String>(
-            data: 'deck_card',
+        canDraw ? Draggable<String>(
+          onDragStarted: () => HapticFeedback.heavyImpact(),
+          data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
             child: Container(
@@ -1309,8 +1308,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
           child: topCardVisual,
-        ),
-      ) : topCardVisual
+        ) : topCardVisual
     );
     
     return Stack(
