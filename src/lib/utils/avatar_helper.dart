@@ -1,8 +1,10 @@
 class AvatarHelper {
   static const List<String> availableAvatars = [
-    'androide',
     'ainara',
+    'amy',
+    'androide',
     'cientifico',
+    'fx',
     'timida',
   ];
 
@@ -19,6 +21,12 @@ class AvatarHelper {
       name = match;
     }
     
-    return 'assets/avatars/$name/$name.$state.png';
+    // Special case for FX avatar (files are uppercase)
+    String fileName = name;
+    if (name == 'fx') {
+      fileName = 'FX';
+    }
+    
+    return 'assets/avatars/$name/$fileName.$state.png';
   }
 }

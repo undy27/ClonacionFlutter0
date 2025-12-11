@@ -34,9 +34,11 @@ flutter:
     - assets/
     - assets/textos/
     - assets/ovejas/
-    - assets/avatars/androide/
     - assets/avatars/ainara/
+    - assets/avatars/amy/
+    - assets/avatars/androide/
     - assets/avatars/cientifico/
+    - assets/avatars/fx/
     - assets/avatars/timida/
     - assets/sonidos/menu/
     - assets/sonidos/descartes/incorrecto/
