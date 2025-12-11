@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 
 import 'screens/home_screen.dart';
-import 'screens/splash_screen.dart';
 import 'screens/game_list_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/ranking_screen.dart';
@@ -58,8 +57,7 @@ class MyApp extends StatelessWidget {
         return child!;
       },
       routes: {
-        '/': (context) => const SplashScreen(),
-        '/auth': (context) => const AuthScreen(),
+        '/': (context) => const AuthScreen(),
         '/home': (context) => const HomeScreen(),
         '/game_list': (context) => const GameListScreen(),
         '/game': (context) => const GameScreen(),
