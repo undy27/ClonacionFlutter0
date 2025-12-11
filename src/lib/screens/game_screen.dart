@@ -731,27 +731,28 @@ class _GameScreenState extends State<GameScreen> {
         final card = pile[cardIndex];
         
         final random = Random(card.hashCode);
-        final angleDegrees = -3 + random.nextDouble() * 6;
-        final angleRadians = angleDegrees * (pi / 180);
-        
-        // Small random offset for "messy pile" effect
-        final offsetX = -2 + random.nextDouble() * 4;
-        final offsetY = -2 + random.nextDouble() * 4;
+      // First card (index 0) is straight, others rotated
+      final angleDegrees = (cardIndex == 0) ? 0.0 : (-3 + random.nextDouble() * 6);
+      final angleRadians = angleDegrees * (pi / 180);
+      
+      // Small random offset for "messy pile" effect
+      final offsetX = -2 + random.nextDouble() * 4;
+      final offsetY = -2 + random.nextDouble() * 4;
 
-        stackChildren.add(
-            Positioned(
-                left: offsetX,
-                top: offsetY,
-                child: Transform.rotate(
-                    angle: angleRadians,
-                    child: CartaWidget(
-                        carta: card,
-                        width: w,
-                        height: h,
-                    ),
-                ),
-            )
-        );
+      stackChildren.add(
+          Positioned(
+              left: offsetX,
+              top: offsetY,
+              child: Transform.rotate(
+                  angle: angleRadians,
+                  child: CartaWidget(
+                      carta: card,
+                      width: w,
+                      height: h,
+                  ),
+              ),
+          )
+      );
     }
     
     // 2. Add top card (DragTarget)
@@ -766,7 +767,9 @@ class _GameScreenState extends State<GameScreen> {
             final topCard = pile.last;
             
             final random = Random(topCard.hashCode);
-            final angleDegrees = -3 + random.nextDouble() * 6;
+            // If this is the only card (index 0), it's straight
+            final isFirstCard = (count == 1);
+            final angleDegrees = isFirstCard ? 0.0 : (-3 + random.nextDouble() * 6);
             final angleRadians = angleDegrees * (pi / 180);
 
             return Transform.rotate(
