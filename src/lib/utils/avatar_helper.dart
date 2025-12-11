@@ -5,7 +5,6 @@ class AvatarHelper {
     'androide',
     'cientifico',
     'fx',
-    'timida',
   ];
 
   static String getAvatarPath(String avatarName, int state) {
