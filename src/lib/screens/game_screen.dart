@@ -56,6 +56,9 @@ class _GameScreenState extends State<GameScreen> {
     4: GlobalKey(),
   };
   GlobalKey? _deckKey = GlobalKey();
+  
+  // Haptic feedback deduplication
+  int? _lastHapticTime;
 
   // Hand rotation state
   List<double> _handAngles = [0, 0, 0, 0, 0];
@@ -1078,9 +1081,25 @@ class _GameScreenState extends State<GameScreen> {
             : child,
       );
     },
+  child: GestureDetector(
+    onTapDown: (_) {
+      // Trigger haptic on touch
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (_lastHapticTime == null || now - _lastHapticTime! > 2000) {
+        HapticFeedback.heavyImpact();
+        _lastHapticTime = now;
+      }
+    },
     child: Draggable(
       maxSimultaneousDrags: _isPenaltyActive ? 0 : 1,
-      onDragStarted: () => HapticFeedback.heavyImpact(),
+      onDragStarted: () {
+        // Trigger haptic on drag start (if not already triggered by tap)
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (_lastHapticTime == null || now - _lastHapticTime! > 2000) {
+          HapticFeedback.heavyImpact();
+          _lastHapticTime = now;
+        }
+      },
       data: carta,
       feedback: Transform.rotate(
         angle: angleRadians, // Use stored angle
@@ -1122,8 +1141,9 @@ class _GameScreenState extends State<GameScreen> {
             useVariableFont: useVariableFont,
           ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDeck(int count, int initialSize, double w, double h) {
     if (count == 0) {
@@ -1245,9 +1265,25 @@ class _GameScreenState extends State<GameScreen> {
     final canDraw = count > 0 && myHandSize < 5 && !_isPenaltyActive;
 
     stackChildren.add(
-        canDraw ? Draggable<String>(
-          onDragStarted: () => HapticFeedback.heavyImpact(),
-          data: 'deck_card',
+        canDraw ? GestureDetector(
+          onTapDown: (_) {
+            // Trigger haptic on touch
+            final now = DateTime.now().millisecondsSinceEpoch;
+            if (_lastHapticTime == null || now - _lastHapticTime! > 2000) {
+              HapticFeedback.heavyImpact();
+              _lastHapticTime = now;
+            }
+          },
+          child: Draggable<String>(
+            onDragStarted: () {
+              // Trigger haptic on drag start (if not already triggered by tap)
+              final now = DateTime.now().millisecondsSinceEpoch;
+              if (_lastHapticTime == null || now - _lastHapticTime! > 2000) {
+                HapticFeedback.heavyImpact();
+                _lastHapticTime = now;
+              }
+            },
+            data: 'deck_card',
           feedback: Material(
             color: Colors.transparent,
             child: Container(
@@ -1278,7 +1314,8 @@ class _GameScreenState extends State<GameScreen> {
           ),
           childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
           child: topCardVisual,
-        ) : topCardVisual
+        ),
+      ) : topCardVisual
     );
     
     return Stack(
