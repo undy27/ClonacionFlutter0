@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/websocket_service.dart';
 import '../models/carta.dart';
 import '../models/usuario.dart';
 import '../config/server_config.dart';
+import '../services/postgres_service.dart';
 import 'package:http/http.dart' as http;
 
 enum OnlineGameMode { offline, online }
@@ -141,6 +143,10 @@ class OnlineGameProvider with ChangeNotifier {
           _winner = winner;
           _gameStatus = 'finished';
           debugPrint('[OnlineGameProvider] Game over! Winner: ${winner['alias']}');
+          
+          // Update Elo ratings
+          await _updateEloRatings(winner['id'] as String);
+          
           _gameOverController.add(message);
           notifyListeners();
           break;
@@ -282,6 +288,84 @@ class OnlineGameProvider with ChangeNotifier {
       _errorMessage = 'Error al eliminar sala';
       notifyListeners();
     }
+  }
+
+  Future<void> _updateEloRatings(String winnerId) async {
+    try {
+      final db = PostgresService();
+      
+      // Get all players' current ratings and game counts
+      final playerRatings = <String, Map<String, int>>{};
+      
+      for (var player in _players) {
+        final user = await db.getUsuarioById(player.id);
+        if (user != null) {
+          playerRatings[player.id] = {
+            'rating': user.rating,
+            'games': user.partidasJugadas,
+          };
+        }
+      }
+      
+      // Calculate new ratings
+      final newRatings = _calculateEloRatings(winnerId, playerRatings);
+      
+      // Update database for each player
+      for (var playerId in newRatings.keys) {
+        final user = await db.getUsuarioById(playerId);
+        if (user != null) {
+          final isWinner = playerId == winnerId;
+          
+          await db.updateUserStats(
+            userId: playerId,
+            newRating: newRatings[playerId]!,
+            won: isWinner,
+          );
+          
+          debugPrint('[OnlineGameProvider] Updated rating for $playerId: ${playerRatings[playerId]!['rating']} -> ${newRatings[playerId]}');
+        }
+      }
+    } catch (e) {
+      debugPrint('[OnlineGameProvider] Error updating Elo ratings: $e');
+    }
+  }
+
+  Map<String, int> _calculateEloRatings(String winnerId, Map<String, Map<String, int>> playerRatings) {
+    final newRatings = <String, int>{};
+    
+    // Initialize with current ratings
+    for (var playerId in playerRatings.keys) {
+      newRatings[playerId] = playerRatings[playerId]!['rating'];
+    }
+    
+    final winnerRating = playerRatings[winnerId]!['rating'];
+    final winnerGames = playerRatings[winnerId]!['games'];
+    final winnerK = winnerGames < 30 ? 40 : 20;
+    
+    // Winner plays virtual match against each loser
+    int totalWinnerChange = 0;
+    
+    for (var loserId in playerRatings.keys) {
+      if (loserId == winnerId) continue;
+      
+      final loserRating = playerRatings[loserId]!['rating'];
+      final loserGames = playerRatings[loserId]!['games'];
+      final loserK = loserGames < 30 ? 40 : 20;
+      
+      // Expected score for winner vs this loser
+      final expectedWinner = 1 / (1 + pow(10, (loserRating - winnerRating) / 400));
+      
+      // Winner gets 1 point (win), loser gets 0 points (loss)
+      final winnerChange = (winnerK * (1 - expectedWinner)).round();
+      final loserChange = (loserK * (0 - (1 - expectedWinner))).round();
+      
+      totalWinnerChange += winnerChange;
+      newRatings[loserId] = newRatings[loserId]! + loserChange;
+    }
+    
+    newRatings[winnerId] = newRatings[winnerId]! + totalWinnerChange;
+    
+    return newRatings;
   }
 
   void dispose() {

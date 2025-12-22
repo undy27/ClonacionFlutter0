@@ -167,6 +167,25 @@ class PostgresService {
     }
   }
 
+  /// Obtiene un usuario por su ID
+  Future<Usuario?> getUsuarioById(String id) async {
+    try {
+      final conn = await _getConnection();
+      final result = await conn.query(
+        'SELECT * FROM usuarios WHERE id = @id LIMIT 1',
+        substitutionValues: {'id': id},
+        allowReuse: false,
+      );
+      
+      if (result.isEmpty) return null;
+      
+      return Usuario.fromJson(result.first.toColumnMap());
+    } catch (e) {
+      print('Error al obtener usuario por ID: $e');
+      return null;
+    }
+  }
+
   /// Crea un nuevo usuario
   Future<Usuario?> createUsuario({
     required String id,
@@ -710,6 +729,54 @@ class PostgresService {
       return true;
     } catch (e) {
       print('Error al actualizar avatar: $e');
+      return false;
+    }
+  }
+
+  /// Updates user statistics after a game
+  Future<bool> updateUserStats({
+    required String userId,
+    required int newRating,
+    required bool won,
+  }) async {
+    try {
+      final conn = await _getConnection();
+      
+      if (won) {
+        await conn.query(
+          '''
+            UPDATE usuarios 
+            SET rating = @rating,
+                partidas_jugadas = partidas_jugadas + 1,
+                victorias = victorias + 1
+            WHERE id = @userId
+          ''',
+          substitutionValues: {
+            'rating': newRating,
+            'userId': userId,
+          },
+          allowReuse: false,
+        );
+      } else {
+        await conn.query(
+          '''
+            UPDATE usuarios 
+            SET rating = @rating,
+                partidas_jugadas = partidas_jugadas + 1,
+                derrotas = derrotas + 1
+            WHERE id = @userId
+          ''',
+          substitutionValues: {
+            'rating': newRating,
+            'userId': userId,
+          },
+          allowReuse: false,
+        );
+      }
+      
+      return true;
+    } catch (e) {
+      print('Error al actualizar estadísticas de usuario: $e');
       return false;
     }
   }
