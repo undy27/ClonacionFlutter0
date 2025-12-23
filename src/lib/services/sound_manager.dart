@@ -26,8 +26,13 @@ class SoundManager {
     }
   }
 
-  Future<void> playBackgroundMusic() async {
+  Future<void> playBackgroundMusic({bool musicEnabled = true}) async {
     try {
+      if (!musicEnabled) {
+        debugPrint('SoundManager: Music is disabled in settings');
+        return;
+      }
+
       if (_isMusicPlaying) {
         debugPrint('SoundManager: Background music already playing');
         return;

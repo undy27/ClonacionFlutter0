@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../services/sound_manager.dart';
+import '../providers/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,8 +16,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Start background music when entering home screen
-    SoundManager().playBackgroundMusic();
+    // Start background music when entering home screen (if enabled)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      SoundManager().playBackgroundMusic(musicEnabled: themeProvider.musicEnabled);
+    });
   }
 
   @override

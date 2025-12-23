@@ -191,6 +191,13 @@ class OptionsScreen extends StatelessWidget {
                                   onChanged: (value) {
                                     SystemSound.play(SystemSoundType.click);
                                     themeProvider.toggleMusic();
+                                    
+                                    // Control background music based on new setting
+                                    if (value) {
+                                      SoundManager().playBackgroundMusic(musicEnabled: true);
+                                    } else {
+                                      SoundManager().stopBackgroundMusic();
+                                    }
                                   },
                                 ),
                               ),
