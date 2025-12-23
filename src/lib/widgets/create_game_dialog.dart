@@ -158,22 +158,10 @@ class _CreateGameDialogState extends State<CreateGameDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextButton(
+                      child: CustomButton(
+                        text: "CANCELAR",
+                        color: AppTheme.textSecondary,
                         onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: isDark ? AppTheme.darkBorder : AppTheme.border, 
-                              width: 2
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          "CANCELAR",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
