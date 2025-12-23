@@ -38,9 +38,15 @@ class Usuario {
   factory Usuario.fromJson(Map<String, dynamic> json) {
     // Validate avatar - if it doesn't exist, assign a random one
     String avatarValue = json['avatar'] ?? 'default';
-    if (!_isValidAvatar(avatarValue)) {
+    
+    // Handle 'default' avatar silently (assign random without logging)
+    if (avatarValue == 'default') {
       avatarValue = _getRandomAvatar();
-      print('[Usuario] Avatar "$avatarValue" not found, assigned random: $avatarValue');
+    } else if (!_isValidAvatar(avatarValue)) {
+      // Only log for truly invalid avatars
+      final originalAvatar = avatarValue;
+      avatarValue = _getRandomAvatar();
+      print('[Usuario] Avatar "$originalAvatar" not found, assigned random: $avatarValue');
     }
     
     return Usuario(
