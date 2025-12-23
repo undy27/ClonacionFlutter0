@@ -7,6 +7,8 @@ class SoundManager {
   SoundManager._internal();
 
   final AudioPlayer _menuPlayer = AudioPlayer();
+  final AudioPlayer _backgroundMusicPlayer = AudioPlayer();
+  bool _isMusicPlaying = false;
 
   Future<void> playMenuButton() async {
     try {
@@ -23,8 +25,42 @@ class SoundManager {
       debugPrint('Error playing menu sound: $e');
     }
   }
+
+  Future<void> playBackgroundMusic() async {
+    try {
+      if (_isMusicPlaying) {
+        debugPrint('SoundManager: Background music already playing');
+        return;
+      }
+
+      debugPrint('SoundManager: Starting background music...');
+      await _backgroundMusicPlayer.setReleaseMode(ReleaseMode.loop);
+      await _backgroundMusicPlayer.setVolume(0.5); // 50% volume for background music
+      await _backgroundMusicPlayer.play(AssetSource('musica/M.1.mp3'));
+      _isMusicPlaying = true;
+      debugPrint('SoundManager: Background music started');
+    } catch (e) {
+      debugPrint('Error playing background music: $e');
+    }
+  }
+
+  Future<void> stopBackgroundMusic() async {
+    try {
+      if (!_isMusicPlaying) {
+        return;
+      }
+
+      debugPrint('SoundManager: Stopping background music...');
+      await _backgroundMusicPlayer.stop();
+      _isMusicPlaying = false;
+      debugPrint('SoundManager: Background music stopped');
+    } catch (e) {
+      debugPrint('Error stopping background music: $e');
+    }
+  }
   
   void dispose() {
     _menuPlayer.dispose();
+    _backgroundMusicPlayer.dispose();
   }
 }

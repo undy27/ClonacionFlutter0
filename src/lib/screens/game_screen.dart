@@ -16,6 +16,7 @@ import '../models/partida.dart';
 import '../models/carta.dart';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
+import '../services/sound_manager.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -68,6 +69,9 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Stop background music when game starts
+    SoundManager().stopBackgroundMusic();
     
     // Listen to hand changes for rotation logic
     final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);

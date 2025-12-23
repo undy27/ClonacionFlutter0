@@ -39,6 +39,7 @@ flutter:
     - assets/avatars/androide/
     - assets/avatars/cientifico/
     - assets/avatars/fx/
+    - assets/musica/
     - assets/sonidos/menu/
     - assets/sonidos/descartes/incorrecto/
     - assets/sonidos/descartes/correcto/
