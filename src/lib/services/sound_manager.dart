@@ -45,7 +45,7 @@ class SoundManager {
         AudioContext(
           iOS: AudioContextIOS(
             category: AVAudioSessionCategory.playback,
-            options: [AVAudioSessionOptions.mixWithOthers],
+            options: {AVAudioSessionOptions.mixWithOthers},
           ),
           android: AudioContextAndroid(
             isSpeakerphoneOn: false,
