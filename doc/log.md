@@ -493,3 +493,124 @@ Supabase Database
 
 #### Notas Técnicas:
 *   Se optó por `SystemSound` para los sonidos de interfaz por ser una solución nativa y ligera que no requiere assets externos ni dependencias pesadas como `audioplayers` para interacciones básicas.
+
+---
+
+## 2025-12-11 a 2025-12-23
+
+### Sesión 11: Refinamiento Visual, Sistema Elo, Feedback Háptico y Música
+
+**Objetivo:** Mejorar la experiencia de usuario mediante refinamientos visuales, implementar el sistema de rating Elo, mejorar el feedback háptico, actualizar el sistema de avatares, añadir música de fondo y actualizar el icono de la app.
+
+#### Cambios Realizados:
+
+1. **Refinamiento Visual de Recuadros de Jugadores** (`lib/screens/game_screen.dart`)
+   * Forzado uso de colores del modo oscuro independientemente del tema seleccionado
+   * Fondo transparente para mostrar el tapete verde
+   * Bordes aumentados para mejor visibilidad:
+     - Jugador actual: 4px (azul primary)
+     - Jugadores rivales: 2px (blanco semi-transparente)
+   * Avatar con fondo gris oscuro (#2C2C2C)
+   * Texto en gris claro (grey[300])
+   * Padding horizontal reducido de 6px a 4px para evitar overflow en iPhone
+
+2. **Sistema de Rating Elo** (`lib/providers/online_game_provider.dart`, `lib/services/postgres_service.dart`)
+   * Implementado sistema Elo basado en FIDE adaptado para 2-4 jugadores
+   * Lógica de cálculo:
+     - Ganador juega "partidas virtuales" contra cada perdedor
+     - Cada perdedor juega una sola partida contra el ganador
+     - Factor K: 40 para primeras 30 partidas, 20 para partidas posteriores
+     - Rating inicial: 1500 puntos
+   * Métodos añadidos:
+     - `_updateEloRatings()`: Actualiza ratings al finalizar partida
+     - `_calculateEloRatings()`: Calcula nuevos ratings según sistema Elo
+     - `PostgresService.updateUserStats()`: Actualiza BD con nuevos ratings y estadísticas
+     - `PostgresService.getUsuarioById()`: Obtiene usuario por ID
+   * Actualización automática al recibir evento `GAME_OVER`
+   * Manejo de null safety con valores por defecto (1500 para rating, 0 para partidas)
+
+3. **Mejoras en Feedback Háptico** (`lib/screens/game_screen.dart`)
+   * Sistema de deduplicación para evitar feedback doble
+   * Feedback háptico al tocar carta (onTapDown)
+   * Feedback háptico al arrastrar carta (onDragStarted)
+   * Ventana de deduplicación de 2 segundos
+   * Variable de estado `_lastHapticTime` para tracking
+   * Aplicado tanto a cartas de mano como al mazo
+
+4. **Sistema de Avatares Actualizado** (`lib/utils/avatar_helper.dart`, `lib/models/usuario.dart`, `pubspec.yaml`)
+   * Nuevos avatares añadidos:
+     - ainara
+     - amy (nuevo)
+     - androide
+     - cientifico
+     - fx (nuevo, con manejo especial de mayúsculas)
+   * Eliminado avatar: timida
+   * Total de 5 avatares disponibles
+   * Cada avatar con 4 estados:
+     - Estado 0: Menú/ranking (*.0.png)
+     - Estado 1: Ganando en solitario (*.1.png)
+     - Estado 2: Ni ganando ni perdiendo (*.2.png)
+     - Estado 3: Perdiendo en solitario (*.3.png)
+   * Validación automática de avatares:
+     - Si avatar guardado no existe, se asigna uno aleatorio
+     - Métodos `_isValidAvatar()` y `_getRandomAvatar()` en Usuario
+
+5. **Música de Fondo para Menús** (`lib/services/sound_manager.dart`, `lib/screens/home_screen.dart`, `lib/screens/options_screen.dart`)
+   * Nuevo `AudioPlayer` dedicado para música de fondo
+   * Archivo de música: `assets/musica/M.1.mp3`
+   * Características:
+     - Reproducción en bucle (ReleaseMode.loop)
+     - Volumen al 50% para no interferir con efectos de sonido
+     - Inicia automáticamente en HomeScreen
+     - Se detiene al comenzar partida (GameScreen)
+   * Control desde opciones:
+     - Respeta configuración `musicEnabled` del ThemeProvider
+     - Toggle en opciones inicia/detiene música inmediatamente
+     - Parámetro `musicEnabled` en `playBackgroundMusic()`
+   * Estado tracking con `_isMusicPlaying`
+
+6. **Actualización de Icono de App** (`pubspec.yaml`, archivos de iconos)
+   * Añadido paquete `flutter_launcher_icons: ^0.13.1`
+   * Configuración:
+     - Imagen fuente: `assets/icons/icon.1.png`
+     - Generación para Android e iOS
+     - `remove_alpha_ios: true` para compatibilidad iOS
+   * Generados automáticamente todos los tamaños necesarios:
+     - Android: múltiples densidades (mipmap)
+     - iOS: múltiples tamaños (AppIcon.appiconset)
+   * Comando ejecutado: `dart run flutter_launcher_icons`
+
+#### Correcciones de Errores:
+
+* **Fix async/null safety en Elo**: Listener de mensajes convertido a async, añadidos casts y valores por defecto para evitar errores de compilación
+* **Fix imports duplicados**: Eliminado import duplicado de SoundManager en options_screen.dart
+
+#### Archivos Creados:
+
+1. `assets/musica/M.1.mp3` - Música de fondo para menús
+2. `assets/icons/icon.1.png` - Nuevo icono de la app
+3. `assets/avatars/amy/` - Nuevo avatar
+4. `assets/avatars/fx/` - Nuevo avatar
+5. Múltiples archivos de iconos generados en `android/` e `ios/`
+
+#### Archivos Modificados:
+
+1. `lib/screens/game_screen.dart` - Estilos de jugadores, feedback háptico, detener música
+2. `lib/providers/online_game_provider.dart` - Sistema Elo, imports
+3. `lib/services/postgres_service.dart` - Métodos para Elo (updateUserStats, getUsuarioById)
+4. `lib/utils/avatar_helper.dart` - Lista de avatares, manejo de FX
+5. `lib/models/usuario.dart` - Validación de avatares, asignación aleatoria
+6. `lib/services/sound_manager.dart` - Música de fondo
+7. `lib/screens/home_screen.dart` - Inicio de música, imports
+8. `lib/screens/options_screen.dart` - Control de música desde opciones
+9. `pubspec.yaml` - Directorio de música, flutter_launcher_icons, avatares
+
+#### Notas Técnicas:
+
+* **Sistema Elo**: Implementación matemáticamente correcta según especificaciones FIDE, adaptada para multijugador
+* **Feedback Háptico**: Ventana de 2 segundos elegida tras pruebas para balance entre responsividad y prevención de duplicados
+* **Música**: AudioPlayer separado permite control independiente de música y efectos de sonido
+* **Avatares**: Sistema robusto que previene crashes si avatares son eliminados
+* **Iconos**: flutter_launcher_icons automatiza generación de todos los tamaños necesarios
+
+---
