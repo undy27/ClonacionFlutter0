@@ -144,8 +144,13 @@ class OnlineGameProvider with ChangeNotifier {
           _gameStatus = 'finished';
           debugPrint('[OnlineGameProvider] Game over! Winner: ${winner['alias']}');
           
-          // Update Elo ratings
-          await _updateEloRatings(winner['id'] as String);
+          // Update Elo ratings only if I am the winner (to avoid duplicate updates from multiple clients)
+          if (_currentUser != null && winner['id'] == _currentUser!.id) {
+            debugPrint('[OnlineGameProvider] I am the winner, updating Elo ratings...');
+            await _updateEloRatings(winner['id'] as String);
+          } else {
+            debugPrint('[OnlineGameProvider] I am not the winner, skipping Elo update');
+          }
           
           _gameOverController.add(message);
           notifyListeners();
