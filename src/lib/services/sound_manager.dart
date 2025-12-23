@@ -39,9 +39,30 @@ class SoundManager {
       }
 
       debugPrint('SoundManager: Starting background music...');
+      
+      // Configure audio context for Android to continue playing in background
+      await _backgroundMusicPlayer.setAudioContext(
+        AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: [AVAudioSessionOptions.mixWithOthers],
+          ),
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: false,
+            stayAwake: false,
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.gain,
+          ),
+        ),
+      );
+      
       await _backgroundMusicPlayer.setReleaseMode(ReleaseMode.loop);
       await _backgroundMusicPlayer.setVolume(0.5); // 50% volume for background music
-      await _backgroundMusicPlayer.play(AssetSource('musica/M.1.mp3'));
+      await _backgroundMusicPlayer.play(
+        AssetSource('musica/M.1.mp3'),
+        mode: PlayerMode.mediaPlayer, // Use mediaPlayer mode for background music
+      );
       _isMusicPlaying = true;
       debugPrint('SoundManager: Background music started');
     } catch (e) {
