@@ -84,7 +84,7 @@ class OnlineGameProvider with ChangeNotifier {
     });
 
     // Listen for other messages
-    _messageSubscription = _wsService.messages.listen((message) {
+    _messageSubscription = _wsService.messages.listen((message) async {
       final type = message['type'] as String;
       
       switch (type) {
@@ -335,11 +335,11 @@ class OnlineGameProvider with ChangeNotifier {
     
     // Initialize with current ratings
     for (var playerId in playerRatings.keys) {
-      newRatings[playerId] = playerRatings[playerId]!['rating'];
+      newRatings[playerId] = (playerRatings[playerId]!['rating'] ?? 1500) as int;
     }
     
-    final winnerRating = playerRatings[winnerId]!['rating'];
-    final winnerGames = playerRatings[winnerId]!['games'];
+    final winnerRating = (playerRatings[winnerId]!['rating'] ?? 1500) as int;
+    final winnerGames = (playerRatings[winnerId]!['games'] ?? 0) as int;
     final winnerK = winnerGames < 30 ? 40 : 20;
     
     // Winner plays virtual match against each loser
@@ -348,8 +348,8 @@ class OnlineGameProvider with ChangeNotifier {
     for (var loserId in playerRatings.keys) {
       if (loserId == winnerId) continue;
       
-      final loserRating = playerRatings[loserId]!['rating'];
-      final loserGames = playerRatings[loserId]!['games'];
+      final loserRating = (playerRatings[loserId]!['rating'] ?? 1500) as int;
+      final loserGames = (playerRatings[loserId]!['games'] ?? 0) as int;
       final loserK = loserGames < 30 ? 40 : 20;
       
       // Expected score for winner vs this loser
