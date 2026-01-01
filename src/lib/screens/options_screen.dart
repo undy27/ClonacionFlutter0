@@ -14,14 +14,59 @@ import '../widgets/carta_widget.dart';
 
 import '../services/sound_manager.dart';
 
-class OptionsScreen extends StatelessWidget {
+class OptionsScreen extends StatefulWidget {
   const OptionsScreen({super.key});
+
+  @override
+  State<OptionsScreen> createState() => _OptionsScreenState();
+}
+
+class _OptionsScreenState extends State<OptionsScreen> {
+  bool _showDevOptions = false;
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+
+  void _handleTitleTap() {
+    final now = DateTime.now();
+    
+    // Reset counter if more than 1 second has passed
+    if (_lastTapTime == null || now.difference(_lastTapTime!) > const Duration(seconds: 1)) {
+      _tapCount = 1;
+    } else {
+      _tapCount++;
+    }
+    
+    _lastTapTime = now;
+    
+    // Toggle dev options on triple tap
+    if (_tapCount >= 3) {
+      setState(() {
+        _showDevOptions = !_showDevOptions;
+        _tapCount = 0;
+      });
+      
+      // Show feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _showDevOptions 
+              ? 'Opciones de desarrollo activadas' 
+              : 'Opciones de desarrollo desactivadas'
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("OPCIONES"),
+        title: GestureDetector(
+          onTap: _handleTitleTap,
+          child: const Text("OPCIONES"),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -68,7 +113,8 @@ class OptionsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Server Preference Toggle
+                    // Server Preference Toggle (Developer Option)
+                    if (_showDevOptions) ...[
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, child) {
                         return _buildCompactOptionContainer(
@@ -112,6 +158,7 @@ class OptionsScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 8),
+                    ],
 
                     // Dark Mode Toggle
                     Consumer<ThemeProvider>(
@@ -143,7 +190,8 @@ class OptionsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // Variable Font Size Toggle
+                    // Variable Font Size Toggle (Developer Option)
+                    if (_showDevOptions) ...[
                     Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {
                         return _buildCompactOptionContainer(
@@ -168,6 +216,7 @@ class OptionsScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 8),
+                    ],
 
                     // Sounds Settings
                     Consumer<ThemeProvider>(
@@ -230,7 +279,8 @@ class OptionsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // Interface Theme Selector
+                    // Interface Theme Selector (Developer Option)
+                    if (_showDevOptions) ...[
                     Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {
                         return _buildCompactOptionContainer(
@@ -298,6 +348,7 @@ class OptionsScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 8),
+                    ],
 
                     // Avatar Selector
                     _buildCompactOptionContainer(
