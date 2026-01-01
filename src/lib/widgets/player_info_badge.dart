@@ -55,7 +55,8 @@ class PlayerInfoBadge extends StatelessWidget {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                // Adjust radius to account for border width (12 - 4 = 8 when bordered)
+                borderRadius: BorderRadius.circular(isCurrentUser ? 8 : 12),
                 child: Image.asset(
                   AvatarHelper.getAvatarPath(jugador.avatar ?? 'default', avatarState),
                   width: avatarSize,
