@@ -26,7 +26,7 @@ class SoundManager {
     }
   }
 
-  Future<void> playBackgroundMusic({bool musicEnabled = true, String musicFile = 'M.1.mp3'}) async {
+  Future<void> playBackgroundMusic({bool musicEnabled = true, String musicFile = 'M.3.wav'}) async {
     try {
       if (!musicEnabled) {
         debugPrint('SoundManager: Music is disabled in settings');

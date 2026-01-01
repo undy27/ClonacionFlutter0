@@ -246,6 +246,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
                                     value: 'M.2.wav',
                                     child: Text("MÚSICA 2"),
                                   ),
+                                  DropdownMenuItem(
+                                    value: 'M.3.wav',
+                                    child: Text("MÚSICA 3"),
+                                  ),
                                 ],
                                 onChanged: (String? newValue) {
                                   if (newValue != null) {

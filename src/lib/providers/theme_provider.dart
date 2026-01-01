@@ -48,7 +48,7 @@ class ThemeProvider with ChangeNotifier {
     _variableFontSize = prefs.getBool('variableFontSize') ?? true;
     _musicEnabled = prefs.getBool('musicEnabled') ?? true;
     _soundEffectsEnabled = prefs.getBool('soundEffectsEnabled') ?? true;
-    _backgroundMusic = prefs.getString('backgroundMusic') ?? 'M.1.mp3';
+    _backgroundMusic = prefs.getString('backgroundMusic') ?? 'M.3.wav';
     
     notifyListeners();
   }
@@ -112,7 +112,7 @@ class ThemeProvider with ChangeNotifier {
   bool _variableFontSize = true;
   bool _musicEnabled = true;
   bool _soundEffectsEnabled = true;
-  String _backgroundMusic = 'M.1.mp3'; // Default background music
+  String _backgroundMusic = 'M.3.wav'; // Default background music
 
   bool get variableFontSize => _variableFontSize;
   bool get musicEnabled => _musicEnabled;
