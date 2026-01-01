@@ -216,6 +216,61 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       },
                     ),
                     const SizedBox(height: 8),
+                    
+                    // Background Music Selector (Developer Option)
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, child) {
+                        return _buildCompactOptionContainer(
+                          context,
+                          height: standardHeight,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            title: Text(
+                              "MÚSICA DE FONDO",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            trailing: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: themeProvider.backgroundMusic,
+                                icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).textTheme.bodyMedium?.color),
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                                isDense: true,
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'M.1.mp3',
+                                    child: Text("MÚSICA 1"),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'M.2.wav',
+                                    child: Text("MÚSICA 2"),
+                                  ),
+                                ],
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    SystemSound.play(SystemSoundType.click);
+                                    themeProvider.setBackgroundMusic(newValue);
+                                    
+                                    // Restart music with new file if music is enabled
+                                    if (themeProvider.musicEnabled) {
+                                      SoundManager().stopBackgroundMusic();
+                                      Future.delayed(const Duration(milliseconds: 100), () {
+                                        SoundManager().playBackgroundMusic(
+                                          musicEnabled: true,
+                                          musicFile: newValue,
+                                        );
+                                      });
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     ],
 
                     // Sounds Settings
@@ -243,7 +298,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
                                     
                                     // Control background music based on new setting
                                     if (value) {
-                                      SoundManager().playBackgroundMusic(musicEnabled: true);
+                                      SoundManager().playBackgroundMusic(
+                                        musicEnabled: true,
+                                        musicFile: themeProvider.backgroundMusic,
+                                      );
                                     } else {
                                       SoundManager().stopBackgroundMusic();
                                     }

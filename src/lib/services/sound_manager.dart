@@ -26,7 +26,7 @@ class SoundManager {
     }
   }
 
-  Future<void> playBackgroundMusic({bool musicEnabled = true}) async {
+  Future<void> playBackgroundMusic({bool musicEnabled = true, String musicFile = 'M.1.mp3'}) async {
     try {
       if (!musicEnabled) {
         debugPrint('SoundManager: Music is disabled in settings');
@@ -38,7 +38,7 @@ class SoundManager {
         return;
       }
 
-      debugPrint('SoundManager: Starting background music...');
+      debugPrint('SoundManager: Starting background music: $musicFile');
       
       // Configure audio context for Android to continue playing in background
       await _backgroundMusicPlayer.setAudioContext(
@@ -60,7 +60,7 @@ class SoundManager {
       await _backgroundMusicPlayer.setReleaseMode(ReleaseMode.loop);
       await _backgroundMusicPlayer.setVolume(0.5); // 50% volume for background music
       await _backgroundMusicPlayer.play(
-        AssetSource('musica/M.1.mp3'),
+        AssetSource('musica/$musicFile'),
         mode: PlayerMode.mediaPlayer, // Use mediaPlayer mode for background music
       );
       _isMusicPlaying = true;

@@ -19,7 +19,10 @@ class _HomeScreenState extends State<HomeScreen> {
     // Start background music when entering home screen (if enabled)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      SoundManager().playBackgroundMusic(musicEnabled: themeProvider.musicEnabled);
+      SoundManager().playBackgroundMusic(
+        musicEnabled: themeProvider.musicEnabled,
+        musicFile: themeProvider.backgroundMusic,
+      );
     });
   }
 

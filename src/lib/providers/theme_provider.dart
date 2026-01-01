@@ -48,6 +48,7 @@ class ThemeProvider with ChangeNotifier {
     _variableFontSize = prefs.getBool('variableFontSize') ?? true;
     _musicEnabled = prefs.getBool('musicEnabled') ?? true;
     _soundEffectsEnabled = prefs.getBool('soundEffectsEnabled') ?? true;
+    _backgroundMusic = prefs.getString('backgroundMusic') ?? 'M.1.mp3';
     
     notifyListeners();
   }
@@ -111,10 +112,12 @@ class ThemeProvider with ChangeNotifier {
   bool _variableFontSize = true;
   bool _musicEnabled = true;
   bool _soundEffectsEnabled = true;
+  String _backgroundMusic = 'M.1.mp3'; // Default background music
 
   bool get variableFontSize => _variableFontSize;
   bool get musicEnabled => _musicEnabled;
   bool get soundEffectsEnabled => _soundEffectsEnabled;
+  String get backgroundMusic => _backgroundMusic;
 
   void toggleVariableFontSize() async {
     _variableFontSize = !_variableFontSize;
@@ -135,5 +138,12 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('soundEffectsEnabled', _soundEffectsEnabled);
+  }
+  
+  void setBackgroundMusic(String musicFile) async {
+    _backgroundMusic = musicFile;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('backgroundMusic', musicFile);
   }
 }

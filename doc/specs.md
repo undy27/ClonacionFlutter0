@@ -243,7 +243,7 @@ Como mínimo, se definirán las siguientes clases:
         - Modificar contraseña
             No implementar todavía
         - Avatar
-            No implementar todavía
+            - El usuario podrá escoger un avatar que lo represente. Se mostrarán en un carrusel los avatares disponibles en assets/avatars (dentro de esa carpeta, cada subcarpeta será un avatar). En el carrusel se mostrarán las imágenes en los ficheros con nombre de fichero de tipo *.0.png. Los demás ficheros (*.1.png, *.2.png, *.3.png) se usarán solo durante la partida, para mostrar su estado
     * Cerrar sesión
 
 ## Competición
@@ -263,6 +263,10 @@ Como mínimo, se definirán las siguientes clases:
                 - La altura de la información de los 4 jugadores coincidirá con la altura de los montones de descartes
                 - Para cada jugador se mostrará:
                     - Avatar
+                        - El avatar reflejará la posición del jugador en el juego:
+                            - Ganando en solitario. Ficheros en assets/avatars/ con nombre de tipo *.1.png
+                            - Ni ganando ni perdiendo en solitario. Ficheros en assets/avatars/ con nombre de tipo *.2.png
+                            - Perdiendo en solitario. Ficheros en assets/avatars/ con nombre de tipo *.3.png
                     - Cartas restantes
                     - Número de penalizaciones por descarte incorrecto
                 - La información de los jugadores se mostrará ordenada según su número de cartas restantes, de menor a mayor

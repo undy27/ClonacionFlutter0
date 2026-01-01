@@ -9,5 +9,7 @@
     /assets/sonidos/victoria/victoria.1.wav
 # Derrota
     /assets/sonidos/derrota/derrota.1.wav
+# Música
+    /assets/musica/M.1.mp3
 
     
