@@ -17,6 +17,7 @@ import '../models/carta.dart';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import '../services/sound_manager.dart';
+import '../widgets/player_info_badge.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -901,116 +902,16 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildPlayerInfoItem(JugadorInfo jugador, double availableHeight, int avatarState) {
     final onlineProvider = Provider.of<OnlineGameProvider>(context, listen: false);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCurrentUser = jugador.id == onlineProvider.currentUser?.id;
     
-    // Scale elements
-    // Reduced avatar size further to fit in box (0.315 -> 0.28) -> Increased by 8% (0.30) -> Added 2px for removed border
-    print('GameScreen: Rendering player ${jugador.alias} with avatar: ${jugador.avatar}');
-    final avatarRadius = (availableHeight * 0.30).clamp(10.0, 22.0) + 2.0;
-    final fontSizeStats = (availableHeight * 0.18).clamp(10.0, 14.0);
-    final iconSize = (availableHeight * 0.18).clamp(12.0, 16.0);
-    
-    return Container(
-      height: availableHeight,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.transparent, // Transparent to show table felt
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isCurrentUser ? AppTheme.primary : Colors.white24, // Always use dark mode colors
-          width: isCurrentUser ? 4 : 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Avatar
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C2C2C), // Always use dark mode color
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(8),
-              // Border removed to maximize avatar size
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.1), 
-                    blurRadius: 4, 
-                    offset: const Offset(0, 2)
-                )
-              ]
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8), // Matches container radius
-              child: Image.asset(
-                AvatarHelper.getAvatarPath(jugador.avatar ?? 'default', avatarState),
-                width: avatarRadius * 2,
-                height: avatarRadius * 2,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: avatarRadius * 2,
-                  height: avatarRadius * 2,
-                  color: Colors.grey[200],
-                  child: Icon(Icons.person, size: avatarRadius, color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
-          
-          const SizedBox(width: 4), // Reduced spacing between avatar and stats
-          
-          // Stats Column
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Cards Row
-              Row(
-                children: [
-                  // Icon removed as requested
-                  Text(
-                    '${jugador.cartasRestantes}',
-                    style: TextStyle(
-                        fontSize: fontSizeStats, 
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[300] // Always use dark mode color
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 2),
-              
-              // Penalties Row
-              Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, size: iconSize, color: jugador.penalizaciones > 0 ? AppTheme.error : Colors.grey[400]),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${jugador.penalizaciones}',
-                    style: TextStyle(
-                        fontSize: fontSizeStats, 
-                        color: jugador.penalizaciones > 0 ? AppTheme.error : Colors.grey[600], 
-                        fontWeight: FontWeight.bold
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
+    return PlayerInfoBadge(
+      jugador: jugador,
+      availableHeight: availableHeight,
+      avatarState: avatarState,
+      isCurrentUser: isCurrentUser,
     );
   }
+
 
   Widget _buildHandCard(int index, List<Carta?> hand, double w, double h, {int maxChars = 5, bool useVariableFont = true}) {
     // Check if slot is empty (null or out of bounds)
