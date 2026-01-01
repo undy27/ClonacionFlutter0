@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/avatar_helper.dart';
-import '../models/jugador_info.dart';
+import '../models/partida.dart';
 
 class PlayerInfoBadge extends StatelessWidget {
   final JugadorInfo jugador;
