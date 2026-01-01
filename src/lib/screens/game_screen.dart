@@ -437,10 +437,7 @@ class _GameScreenState extends State<GameScreen> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.only(right: rightMargin),
-                          child: SizedBox(
-                            height: upperZoneHeight,
-                            child: _buildPlayersInfo(),
-                          ),
+                          child: _buildPlayersInfo(),
                         ),
                       ),
                     ],
@@ -831,8 +828,9 @@ class _GameScreenState extends State<GameScreen> {
     final availableHeight = size.height - topMargin - bottomMargin - verticalSpacing;
     final cardHeight = (availableHeight - (cardSpacing * 3)) / 4;
     
-    // Each player info box is smaller than half the height of a card
-    final playerBoxHeight = cardHeight / 2.5;
+    // Set player box height to 45% of card height
+    final playerBoxHeight = cardHeight * 0.45;
+    const double itemMargin = 8.0; // vertical margin (4px top + 4px bottom)
     
     // Sort players by remaining cards for display order
     final sortedPlayers = List<JugadorInfo>.from(players);
@@ -856,7 +854,7 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     // Calculate total height needed for the stack
-    final itemHeight = playerBoxHeight + 8.0; // Height + vertical margin (4*2)
+    final itemHeight = playerBoxHeight + itemMargin;
     final totalStackHeight = itemHeight * players.length;
 
     return SizedBox(
