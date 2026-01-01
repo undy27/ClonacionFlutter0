@@ -104,11 +104,11 @@ class PlayerInfoBadge extends StatelessWidget {
               ),
             ),
             
-            // Red triangle badge (top-right) - Penalties
+            // Red triangle badge (bottom-right) - Penalties
             if (jugador.penalizaciones > 0)
               Positioned(
                 right: -badgeSize * 0.2,
-                top: -badgeSize * 0.2,
+                bottom: -badgeSize * 0.2,
                 child: CustomPaint(
                   size: Size(badgeSize, badgeSize),
                   painter: TriangleBadgePainter(
