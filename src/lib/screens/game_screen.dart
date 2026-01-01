@@ -95,9 +95,11 @@ class _GameScreenState extends State<GameScreen> {
             final matchDetailsMap = data['matchDetails'] as Map<String, dynamic>;
             final matchDetails = MatchDetails.fromJson(matchDetailsMap);
             
-            setState(() {
-              _pileAnimations[pileIndex] = matchDetails;
-            });
+            if (mounted) {
+              setState(() {
+                _pileAnimations[pileIndex] = matchDetails;
+              });
+            }
             
             // Play valid move sound
             _audioPlayer.play(AssetSource('sonidos/descartes/correcto/correcto.1.wav'));
@@ -758,10 +760,13 @@ class _GameScreenState extends State<GameScreen> {
     
     // 2. Add top card (DragTarget)
     stackChildren.add(
-        DragTarget(
-          onWillAcceptWithDetails: (data) => true,
+        DragTarget<Carta>(
+          onWillAcceptWithDetails: (data) {
+            // Only accept Carta objects, not deck cards (which are Strings)
+            return data.data is Carta;
+          },
           onAcceptWithDetails: (data) {
-            final carta = data.data as Carta;
+            final carta = data.data;
             _handleCardDiscard(carta, index);
           },
           builder: (context, candidateData, rejectedData) {
