@@ -19,8 +19,8 @@ class PlayerInfoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Maximize avatar size - use most of the available height
-    final avatarSize = (availableHeight * 0.85).clamp(40.0, 100.0);
+    // Maximize avatar size - use most of the available height (increased from 85% to 95%)
+    final avatarSize = (availableHeight * 0.95).clamp(40.0, 120.0);
     final badgeSize = (avatarSize * 0.35).clamp(20.0, 35.0);
     final badgeFontSize = (badgeSize * 0.5).clamp(10.0, 16.0);
     
@@ -28,13 +28,8 @@ class PlayerInfoBadge extends StatelessWidget {
       height: availableHeight,
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isCurrentUser ? AppTheme.primary : Colors.white24,
-          width: isCurrentUser ? 3 : 2,
-        ),
       ),
       child: Center(
         child: Stack(
@@ -47,6 +42,10 @@ class PlayerInfoBadge extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF2C2C2C),
                 borderRadius: BorderRadius.circular(12),
+                border: isCurrentUser ? Border.all(
+                  color: AppTheme.primary,
+                  width: 4,
+                ) : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
