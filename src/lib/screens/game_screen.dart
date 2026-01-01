@@ -1284,6 +1284,7 @@ class _GameScreenState extends State<GameScreen> {
             }
           },
           child: Draggable<String>(
+            dragAnchorStrategy: pointerDragAnchorStrategy,
             onDragStarted: () {
               // Trigger haptic on drag start (if not already triggered by tap)
               final now = DateTime.now().millisecondsSinceEpoch;
@@ -1291,6 +1292,9 @@ class _GameScreenState extends State<GameScreen> {
                 HapticFeedback.heavyImpact();
                 _lastHapticTime = now;
               }
+            },
+            onDraggableCanceled: (velocity, offset) {
+              // Callback when drag is cancelled - Flutter animates feedback back
             },
             data: 'deck_card',
           feedback: Material(
@@ -1321,7 +1325,10 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          childWhenDragging: Opacity(opacity: 0.3, child: topCardVisual),
+          childWhenDragging: Opacity(
+            opacity: 0.5, // More visible for better feedback
+            child: topCardVisual,
+          ),
           child: topCardVisual,
         ),
       ) : topCardVisual
