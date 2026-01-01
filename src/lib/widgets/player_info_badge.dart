@@ -80,7 +80,7 @@ class PlayerInfoBadge extends StatelessWidget {
                 height: badgeSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF9C27B0), // Purple
+                  color: AppTheme.primary, // Match deck badge color
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
